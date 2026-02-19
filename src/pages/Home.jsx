@@ -2,44 +2,113 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { AdvancedImage } from '@cloudinary/react';
 import { cld } from '../utils/cloudinary';
+import { useRef } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+
+gsap.registerPlugin(useGSAP);
 
 const Home = () => {
   // Create a Cloudinary image instance
   // Replace 'samples/people/smiling-man' with the Public ID of your uploaded image
   const coverImage = cld.image('Molly_Fleming_Select_Edits_-016_qdjeyl');
 
+  const container = useRef(null);
+
+  useGSAP(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+    // Initial states
+    gsap.set('.hero-text-line', { y: 40, opacity: 0 });
+    gsap.set('.hero-desc', { y: 20, opacity: 0 });
+    gsap.set('.hero-link', { opacity: 0 });
+    gsap.set('.hero-img-wrapper', { opacity: 0, y: 40 });
+    gsap.set('.hero-img', { scale: 1.05 });
+
+    // Animation sequence
+    tl.to('.hero-img-wrapper', {
+      opacity: 1,
+      y: 0,
+      duration: 1.8,
+      ease: 'power3.out'
+    })
+    .to('.hero-img', {
+      scale: 1,
+      duration: 2,
+      ease: 'power2.out',
+      clearProps: 'transform'
+    }, '-=1.8')
+    .to('.hero-text-line', {
+      y: 0,
+      opacity: 1,
+      duration: 1,
+      stagger: 0.15,
+      ease: 'power3.out'
+    }, '-=1.4')
+    .to('.hero-desc', {
+      y: 0,
+      opacity: 1,
+      duration: 1
+    }, '-=0.8')
+    .to('.hero-link', {
+      opacity: 1,
+      duration: 1
+    }, '-=0.8');
+  }, { scope: container });
+
+  // Featured gallery mock layouts for a premium editorial look
+  const wedding1Images = [
+    { id: 'w1-1', aspectRatio: 'aspect-[3/4]', className: 'col-span-12 md:col-span-7' },
+    { id: 'w1-2', aspectRatio: 'aspect-[4/3]', className: 'col-span-12 md:col-span-5' },
+    { id: 'w1-3', aspectRatio: 'aspect-[3/4]', className: 'col-span-12 md:col-span-5 md:mt-[-20%]' }
+  ];
+
+  const wedding2Images = [
+    { id: 'w2-1', aspectRatio: 'aspect-[4/3]', className: 'col-span-12 md:col-span-8 md:col-start-3' },
+    { id: 'w2-2', aspectRatio: 'aspect-[3/4]', className: 'col-span-12 md:col-span-5' },
+    { id: 'w2-3', aspectRatio: 'aspect-[3/4]', className: 'col-span-12 md:col-span-5 md:col-start-8 md:mt-[-15%]' }
+  ];
+
   return (
-    <div className="animate-fade-in opacity-0">
-      {/* Hero Section - Full-screen image with text overlay */}
-      <section id="home-hero" className="relative h-screen w-full overflow-hidden -mt-24">
-        <AdvancedImage 
-          cldImg={coverImage} 
-          className="absolute inset-0 w-full h-full object-cover" 
-          alt="Starling Photography Cover"
-        />
-        <div className="absolute inset-0 bg-black/30" />
-        
-        <div className="relative z-10 h-full flex flex-col items-center justify-center px-6 md:px-12">
-          <div className="max-w-3xl text-center flex flex-col items-center animate-fade-in">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-light tracking-tight text-white leading-[1.1] mb-8">
-              Capturing the <br className="hidden md:block" />
-              <span className="italic text-white/80 font-serif">essence</span> of your moments.
+    <div ref={container} className="w-full">
+      {/* Hero Section - Framed Premium Layout */}
+      <section id="home-hero" className="relative w-full pt-28 pb-20 px-6 md:px-12 lg:px-24 max-w-[1600px] mx-auto min-h-[85vh] flex flex-col justify-center">
+        <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+          
+          {/* Text Content */}
+          <div className="w-full lg:w-5/12 order-2 lg:order-1 flex flex-col justify-center z-10">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif uppercase text-slate-900 leading-[1.1] tracking-wide mb-8">
+              <div className="overflow-hidden"><div className="hero-text-line">Intentional</div></div>
+              <div className="overflow-hidden"><div className="hero-text-line">Elegant</div></div>
+              <div className="overflow-hidden"><div className="hero-text-line">Honest</div></div>
             </h1>
-            <p className="text-lg md:text-xl text-white/70 font-light mb-12 max-w-xl leading-relaxed">
-              Premium photography for weddings, editorials, and lifestyle. Based in London, traveling worldwide.
+            <p className="hero-desc text-base md:text-lg text-slate-600 font-light mb-12 max-w-md leading-relaxed">
+              Premium photography for weddings, editorials, and lifestyle. Based in Philadelphia, traveling worldwide.
             </p>
             <Link
               to="/gallery"
-              className="group inline-flex items-center space-x-4 text-xs uppercase tracking-[0.2em] text-white hover:text-white/70 transition-colors"
+              className="hero-link group inline-flex items-center space-x-4 text-xs uppercase tracking-[0.2em] text-slate-900 hover:text-slate-500 transition-colors"
             >
               <span>View Selected Works</span>
               <ArrowRight size={16} strokeWidth={1} className="group-hover:translate-x-2 transition-transform duration-300" />
             </Link>
           </div>
+          
+          {/* Image Container */}
+          <div className="w-full lg:w-7/12 order-1 lg:order-2">
+            <div className="hero-img-wrapper relative aspect-[4/5] md:aspect-[3/4] lg:aspect-[4/5] w-full overflow-hidden bg-slate-50 shadow-2xl shadow-slate-200/50">
+              <AdvancedImage 
+                cldImg={coverImage} 
+                className="hero-img absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-[2000ms] ease-out" 
+                alt="Starling Photography Cover"
+              />
+            </div>
+          </div>
+
         </div>
       </section>
 
-      {/* Featured Images / Recent Work */}
+      {/* Featured Galleries / Recent Work */}
       <section className="px-6 md:px-12 max-w-7xl mx-auto py-24 border-t border-slate-100">
         <div className="flex justify-between items-end mb-16">
           <h2 className="text-2xl font-light tracking-wide text-slate-900">Recent Stories</h2>
@@ -51,29 +120,57 @@ const Home = () => {
           </Link>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16">
-          {/* Featured Item 1 */}
-          <div className="group cursor-pointer">
-            <div className="aspect-[3/4] md:aspect-[4/5] bg-slate-100 mb-6 overflow-hidden">
-              {/* Image placeholder */}
-              <div className="w-full h-full bg-slate-100 group-hover:scale-105 transition-transform duration-1000 ease-in-out flex items-center justify-center text-slate-300 font-light tracking-widest text-sm uppercase">
-                Image Placeholder
-              </div>
+        <div className="space-y-32">
+          {/* Gallery 1 */}
+          <div>
+            <div className="mb-10 flex flex-col items-center text-center">
+              <h3 className="text-3xl font-light text-slate-900 mb-3">The Amalfi Wedding</h3>
+              <p className="text-sm text-slate-400 font-light uppercase tracking-widest">Amalfi Coast, Italy • Summer 2026</p>
             </div>
-            <h3 className="text-lg font-light text-slate-900 mb-2">The Amalfi Wedding</h3>
-            <p className="text-sm text-slate-400 font-light uppercase tracking-wider">Editorial / 2026</p>
+            <div className="grid grid-cols-12 gap-4 md:gap-8 items-start">
+              {wedding1Images.map((img, i) => (
+                <div key={img.id} className={`group cursor-pointer overflow-hidden ${img.className}`}>
+                  <div className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden shadow-xl shadow-slate-200/50`}>
+                    <div className="absolute inset-0 bg-slate-100 group-hover:scale-105 transition-transform duration-[2000ms] ease-out flex items-center justify-center">
+                      <span className="text-slate-300 font-light tracking-widest text-[10px] uppercase opacity-50">
+                        Image {i + 1}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-12 text-center">
+              <Link to="/gallery" className="inline-block border-b border-slate-300 pb-1 text-sm uppercase tracking-widest text-slate-600 hover:text-slate-900 hover:border-slate-900 transition-colors">
+                View Full Gallery
+              </Link>
+            </div>
           </div>
 
-          {/* Featured Item 2 */}
-          <div className="group cursor-pointer md:mt-24">
-            <div className="aspect-[3/4] md:aspect-[4/5] bg-slate-100 mb-6 overflow-hidden">
-              {/* Image placeholder */}
-              <div className="w-full h-full bg-slate-100 group-hover:scale-105 transition-transform duration-1000 ease-in-out flex items-center justify-center text-slate-300 font-light tracking-widest text-sm uppercase">
-                Image Placeholder
-              </div>
+          {/* Gallery 2 */}
+          <div>
+            <div className="mb-10 flex flex-col items-center text-center">
+              <h3 className="text-3xl font-light text-slate-900 mb-3">Château de Villette</h3>
+              <p className="text-sm text-slate-400 font-light uppercase tracking-widest">Paris, France • Autumn 2026</p>
             </div>
-            <h3 className="text-lg font-light text-slate-900 mb-2">Studio Sessions</h3>
-            <p className="text-sm text-slate-400 font-light uppercase tracking-wider">Portrait / 2026</p>
+            <div className="grid grid-cols-12 gap-4 md:gap-8 items-start">
+              {wedding2Images.map((img, i) => (
+                <div key={img.id} className={`group cursor-pointer overflow-hidden ${img.className}`}>
+                  <div className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden shadow-xl shadow-slate-200/50`}>
+                    <div className="absolute inset-0 bg-slate-100 group-hover:scale-105 transition-transform duration-[2000ms] ease-out flex items-center justify-center">
+                      <span className="text-slate-300 font-light tracking-widest text-[10px] uppercase opacity-50">
+                        Image {i + 1}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-12 text-center">
+              <Link to="/gallery" className="inline-block border-b border-slate-300 pb-1 text-sm uppercase tracking-widest text-slate-600 hover:text-slate-900 hover:border-slate-900 transition-colors">
+                View Full Gallery
+              </Link>
+            </div>
           </div>
         </div>
       </section>

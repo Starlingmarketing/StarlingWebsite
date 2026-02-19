@@ -10,55 +10,11 @@ gsap.registerPlugin(ScrollTrigger);
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isBlendActive, setIsBlendActive] = useState(false);
   const location = useLocation();
   const navRef = useRef(null);
 
   useEffect(() => {
     setIsOpen(false);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    const isHome = location.pathname === '/';
-    if (!isHome) {
-      setIsBlendActive(false);
-      return;
-    }
-
-    let rafId = null;
-
-    const computeBlend = () => {
-      const heroEl = document.getElementById('home-hero');
-      const navHeight = navRef.current?.offsetHeight ?? 0;
-
-      if (!heroEl) {
-        return window.scrollY < window.innerHeight - navHeight - 8;
-      }
-
-      const heroRect = heroEl.getBoundingClientRect();
-      return heroRect.bottom > navHeight + 8;
-    };
-
-    const update = () => {
-      rafId = null;
-      const next = computeBlend();
-      setIsBlendActive((prev) => (prev === next ? prev : next));
-    };
-
-    const onScrollOrResize = () => {
-      if (rafId !== null) return;
-      rafId = window.requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener('scroll', onScrollOrResize, { passive: true });
-    window.addEventListener('resize', onScrollOrResize);
-
-    return () => {
-      window.removeEventListener('scroll', onScrollOrResize);
-      window.removeEventListener('resize', onScrollOrResize);
-      if (rafId !== null) window.cancelAnimationFrame(rafId);
-    };
   }, [location.pathname]);
 
   useGSAP(() => {
@@ -135,7 +91,7 @@ const Navbar = () => {
           <img
             src={logo}
             alt="Starling"
-            className={`h-9 md:h-10 w-auto ${isBlendActive ? 'invert mix-blend-difference' : ''}`}
+            className="h-9 md:h-10 w-auto"
           />
         </Link>
 
@@ -145,15 +101,9 @@ const Navbar = () => {
             <Link
               key={link.name}
               to={link.path}
-              className={
-                isBlendActive
-                  ? `text-xs uppercase tracking-widest text-white mix-blend-difference transition-opacity duration-300 hover:opacity-60 ${
-                      location.pathname === link.path ? 'font-medium opacity-100' : 'opacity-90'
-                    }`
-                  : `text-xs uppercase tracking-widest hover:text-slate-500 transition-colors duration-300 ${
-                      location.pathname === link.path ? 'text-slate-900 font-medium' : 'text-slate-500'
-                    }`
-              }
+              className={`text-xs uppercase tracking-widest hover:text-slate-500 transition-colors duration-300 ${
+                location.pathname === link.path ? 'text-slate-900 font-medium' : 'text-slate-500'
+              }`}
             >
               {link.name}
             </Link>
@@ -163,9 +113,7 @@ const Navbar = () => {
         {/* Mobile Toggle */}
         <button
           type="button"
-          className={`md:hidden z-50 relative p-2 -mr-2 ${
-            isBlendActive ? 'text-white mix-blend-difference' : 'text-slate-900'
-          }`}
+          className="md:hidden z-50 relative p-2 -mr-2 text-slate-900"
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Toggle Menu"
           aria-expanded={isOpen}
