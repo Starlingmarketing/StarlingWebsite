@@ -37,6 +37,12 @@ const reviews = [
     avatar: 'unnamed_2_bud5q1',
     text: "I can't say enough how happy we were to work with the team at Starling Photo Studios. Ben was easy to connect with, always responded to emails quickly and the photos turned out beautifully! We would absolutely recommend Starling Photos for any wedding or party.",
   },
+  {
+    name: 'Sarely Perez Cervantes',
+    rating: 5,
+    avatar: 'unnamed_4_p21mim',
+    text: "We are so happy with the results! Pictures were just how we pictured and more! It reflected us so much and Ben was so great and friendly! He made us feel very comfortable, and even considering my husband doesn't like pictures and almost never smiles.. Ben captured the perfect pictures at the perfect moments!!! Thank you so much..100%!!",
+  },
 ];
 
 const StarIcon = () => (
@@ -98,6 +104,50 @@ const ReviewCard = ({ review, index }) => (
   </div>
 );
 
+const starOnlyReviews = [
+  { name: 'Serena Huang', rating: 5 },
+  { name: 'Alyssa Rose', rating: 5 },
+  { name: 'Michael DiPietro', rating: 5 },
+  { name: 'Brit Haseltine', rating: 5, avatar: 'unnamed_5_guj03k' },
+  { name: 'Daniel Horning', rating: 5 },
+  { name: 'Abbey Atwater', rating: 5 },
+  { name: 'Zach Walgren', rating: 5 },
+  { name: 'Evan Rondenelli', rating: 5 },
+  { name: 'Yonatan Dvir', rating: 5 },
+  { name: 'Nile Overton', rating: 5 },
+  { name: 'Ben Riesenbach', rating: 5 },
+];
+
+const StarOnlyCard = ({ review, index }) => (
+  <div className="flex-shrink-0 w-[220px] bg-white rounded-lg border border-slate-200 p-4 flex items-center gap-3">
+    {review.avatar ? (
+      <img
+        src={cld.image(review.avatar).toURL()}
+        alt={review.name}
+        className="w-9 h-9 rounded-full flex-shrink-0 object-cover"
+      />
+    ) : (
+      <div
+        className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0"
+        style={{ backgroundColor: avatarColors[index % avatarColors.length] }}
+      >
+        {review.name.charAt(0)}
+      </div>
+    )}
+    <div className="min-w-0 flex-1">
+      <p className="text-slate-900 text-sm font-medium leading-tight truncate">{review.name}</p>
+      <div className="flex items-center gap-0.5 mt-1">
+        {Array.from({ length: review.rating }, (_, i) => (
+          <StarIcon key={i} />
+        ))}
+      </div>
+    </div>
+    <div className="flex-shrink-0">
+      <GoogleLogo />
+    </div>
+  </div>
+);
+
 const ReviewSlider = () => {
   const trackRef = useRef(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -129,12 +179,16 @@ const ReviewSlider = () => {
   const doubled = [...reviews, ...reviews];
 
   return (
-    <section className="mt-24 -mx-6 md:-mx-12">
+    <section className="mt-24" style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', width: '100vw' }}>
       <h2 className="text-center text-xs uppercase tracking-[0.2em] text-slate-400 mb-10">
         What Our Clients Say
       </h2>
       <div
         className="overflow-hidden py-4"
+        style={{
+          maskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)',
+        }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
@@ -144,7 +198,61 @@ const ReviewSlider = () => {
           ))}
         </div>
       </div>
+      <ReverseReviewSlider />
     </section>
+  );
+};
+
+const ReverseReviewSlider = () => {
+  const trackRef = useRef(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const posRef = useRef(null);
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const halfWidth = track.scrollWidth / 2;
+    const speed = 0.4;
+
+    if (posRef.current === null) {
+      posRef.current = -halfWidth;
+    }
+
+    const step = () => {
+      if (!isPaused) {
+        posRef.current += speed;
+        if (posRef.current >= 0) {
+          posRef.current = -halfWidth;
+        }
+        track.style.transform = `translateX(${posRef.current}px)`;
+      }
+      rafRef.current = requestAnimationFrame(step);
+    };
+
+    rafRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [isPaused]);
+
+  const doubled = [...starOnlyReviews, ...starOnlyReviews];
+
+  return (
+    <div
+      className="overflow-hidden py-4 mt-2"
+      style={{
+        maskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)',
+        WebkitMaskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)',
+      }}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div ref={trackRef} className="flex gap-6 w-max px-4">
+        {doubled.map((review, i) => (
+          <StarOnlyCard key={i} review={review} index={i} />
+        ))}
+      </div>
+    </div>
   );
 };
 
