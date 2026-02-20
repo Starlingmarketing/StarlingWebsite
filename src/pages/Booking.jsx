@@ -1,5 +1,113 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import emailjs from '@emailjs/browser';
+
+const reviews = [
+  {
+    name: 'Daijah Davis',
+    rating: 5,
+    text: 'Starling Photo Studios shot my wedding this past August. Our photographer was so amazing, he got my wedding from all angles. He also worked with my budget which was much appreciated, because wedding are expensive. I cannot thank him enough for these amazing wedding photos! He also got the photos to me in a very timely manner. I would recommend',
+  },
+  {
+    name: 'Lauren Rowe',
+    rating: 5,
+    text: 'Ben was an outstanding wedding photographer - professional, kind, and patient, making our experience with him truly enjoyable. We highly recommend Ben to any couple seeking a talented photographer - his work is exceptional!',
+  },
+  {
+    name: 'Gilbert Soto',
+    rating: 5,
+    text: 'Absolutely amazing personalized, customer service with a true professional. Constant, open communication and willingness to work with a client at all times. I highly recommend hiring this professional and allowing him to take care of all details. You will not be disappointed.',
+  },
+  {
+    name: 'Kyle Schwab',
+    rating: 5,
+    text: "I hired Ben for my engagement proposal. Ben captured our special moment beautifully. Even after the proposal we walked around for over an hour where he took candid and staged photos of my fiancé and myself. He provided tons of pictures throughout the day. Ben was easy to work with and was very responsive through the whole process. If you're looking to book a photographer for an event. Look no further as I can ensure you Ben is your guy! Thank you Ben!",
+  },
+  {
+    name: 'Danielle Tate',
+    rating: 5,
+    text: "I cannot recommend Starling Photo Studios enough! Their attention to detail, quality of service, and genuine care for their clients are unmatched. Starling Photo Studios exceeded my expectations—everything was done efficiently and with great expertise. The team went above and beyond to ensure my satisfaction, and it's clear they take pride in what they do. If you're looking for a reliable and professional photographer/videographer look no further. I'll definitely be booking their services again soon!",
+  },
+  {
+    name: 'Nick D',
+    rating: 5,
+    text: "I can't say enough how happy we were to work with the team at Starling Photo Studios. Ben was easy to connect with, always responded to emails quickly and the photos turned out beautifully! We would absolutely recommend Starling Photos for any wedding or party.",
+  },
+];
+
+const StarIcon = () => (
+  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-amber-400">
+    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+  </svg>
+);
+
+const ReviewCard = ({ review }) => (
+  <div className="flex-shrink-0 w-[340px] md:w-[400px] bg-white border border-slate-100 p-8 flex flex-col justify-between">
+    <p className="text-slate-600 font-light leading-relaxed text-sm mb-6">
+      "{review.text}"
+    </p>
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-slate-900 text-sm font-medium">{review.name}</p>
+        <p className="text-slate-400 text-xs mt-0.5">Google Review</p>
+      </div>
+      <div className="flex items-center gap-0.5">
+        {Array.from({ length: review.rating }, (_, i) => (
+          <StarIcon key={i} />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+const ReviewSlider = () => {
+  const trackRef = useRef(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const posRef = useRef(0);
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const halfWidth = track.scrollWidth / 2;
+    const speed = 0.4;
+
+    const step = () => {
+      if (!isPaused) {
+        posRef.current -= speed;
+        if (Math.abs(posRef.current) >= halfWidth) {
+          posRef.current = 0;
+        }
+        track.style.transform = `translateX(${posRef.current}px)`;
+      }
+      rafRef.current = requestAnimationFrame(step);
+    };
+
+    rafRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [isPaused]);
+
+  const doubled = [...reviews, ...reviews];
+
+  return (
+    <section className="mt-24 -mx-6 md:-mx-12">
+      <h2 className="text-center text-xs uppercase tracking-[0.2em] text-slate-400 mb-10">
+        What Our Clients Say
+      </h2>
+      <div
+        className="overflow-hidden"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <div ref={trackRef} className="flex gap-6 w-max">
+          {doubled.map((review, i) => (
+            <ReviewCard key={i} review={review} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const Booking = () => {
   const [formData, setFormData] = useState({
@@ -207,6 +315,8 @@ const Booking = () => {
           </form>
         </div>
       </div>
+
+      <ReviewSlider />
     </div>
   );
 };
