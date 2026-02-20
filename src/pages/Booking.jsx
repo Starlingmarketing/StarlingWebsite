@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import emailjs from '@emailjs/browser';
+import { cld } from '../utils/cloudinary';
 
 const reviews = [
   {
     name: 'Daijah Davis',
     rating: 5,
+    avatar: 'unnamed_3_ws0t7o',
     text: 'Starling Photo Studios shot my wedding this past August. Our photographer was so amazing, he got my wedding from all angles. He also worked with my budget which was much appreciated, because wedding are expensive. I cannot thank him enough for these amazing wedding photos! He also got the photos to me in a very timely manner. I would recommend',
   },
   {
@@ -15,6 +17,7 @@ const reviews = [
   {
     name: 'Gilbert Soto',
     rating: 5,
+    avatar: 'unnamed_glcrfb',
     text: 'Absolutely amazing personalized, customer service with a true professional. Constant, open communication and willingness to work with a client at all times. I highly recommend hiring this professional and allowing him to take care of all details. You will not be disappointed.',
   },
   {
@@ -25,36 +28,72 @@ const reviews = [
   {
     name: 'Danielle Tate',
     rating: 5,
+    avatar: 'unnamed_1_npgrws',
     text: "I cannot recommend Starling Photo Studios enough! Their attention to detail, quality of service, and genuine care for their clients are unmatched. Starling Photo Studios exceeded my expectations—everything was done efficiently and with great expertise. The team went above and beyond to ensure my satisfaction, and it's clear they take pride in what they do. If you're looking for a reliable and professional photographer/videographer look no further. I'll definitely be booking their services again soon!",
   },
   {
     name: 'Nick D',
     rating: 5,
+    avatar: 'unnamed_2_bud5q1',
     text: "I can't say enough how happy we were to work with the team at Starling Photo Studios. Ben was easy to connect with, always responded to emails quickly and the photos turned out beautifully! We would absolutely recommend Starling Photos for any wedding or party.",
   },
 ];
 
 const StarIcon = () => (
-  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-amber-400">
-    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5">
+    <path
+      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+      fill="#FBBC04"
+    />
   </svg>
 );
 
-const ReviewCard = ({ review }) => (
-  <div className="flex-shrink-0 w-[340px] md:w-[400px] bg-white border border-slate-100 p-8 flex flex-col justify-between">
-    <p className="text-slate-600 font-light leading-relaxed text-sm mb-6">
-      "{review.text}"
-    </p>
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-slate-900 text-sm font-medium">{review.name}</p>
-        <p className="text-slate-400 text-xs mt-0.5">Google Review</p>
+const GoogleLogo = () => (
+  <svg viewBox="0 0 24 24" className="w-5 h-5">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+  </svg>
+);
+
+const avatarColors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#7B1FA2', '#FF6D00'];
+
+const ReviewCard = ({ review, index }) => (
+  <div className="flex-shrink-0 w-[340px] md:w-[400px] bg-white rounded-lg border border-slate-200 p-5 flex flex-col justify-between">
+    <div>
+      <div className="flex items-start gap-3 mb-3">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {review.avatar ? (
+            <img
+              src={cld.image(review.avatar).toURL()}
+              alt={review.name}
+              className="w-10 h-10 flex-shrink-0"
+            />
+          ) : (
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0"
+              style={{ backgroundColor: avatarColors[index % avatarColors.length] }}
+            >
+              {review.name.charAt(0)}
+            </div>
+          )}
+          <div>
+            <p className="text-slate-900 text-sm font-medium leading-tight">{review.name}</p>
+            <div className="flex items-center gap-0.5 mt-1">
+              {Array.from({ length: review.rating }, (_, i) => (
+                <StarIcon key={i} />
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="flex-shrink-0">
+          <GoogleLogo />
+        </div>
       </div>
-      <div className="flex items-center gap-0.5">
-        {Array.from({ length: review.rating }, (_, i) => (
-          <StarIcon key={i} />
-        ))}
-      </div>
+      <p className="text-slate-700 text-[13px] leading-relaxed mt-3">
+        {review.text}
+      </p>
     </div>
   </div>
 );
@@ -95,13 +134,13 @@ const ReviewSlider = () => {
         What Our Clients Say
       </h2>
       <div
-        className="overflow-hidden"
+        className="overflow-hidden py-4"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        <div ref={trackRef} className="flex gap-6 w-max">
+        <div ref={trackRef} className="flex gap-6 w-max px-4">
           {doubled.map((review, i) => (
-            <ReviewCard key={i} review={review} />
+            <ReviewCard key={i} review={review} index={i} />
           ))}
         </div>
       </div>
