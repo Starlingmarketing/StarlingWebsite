@@ -146,6 +146,7 @@ const Booking = () => {
                   name="date"
                   value={formData.date}
                   onChange={handleChange}
+                  required
                   className="w-full bg-transparent border-b border-slate-300 py-3 text-slate-900 font-light placeholder-slate-300 focus:outline-none focus:border-slate-900 transition-colors"
                 />
               </div>
@@ -174,7 +175,6 @@ const Booking = () => {
                 name="message"
                 value={formData.message}
                 onChange={handleChange}
-                required
                 rows={4}
                 className="w-full bg-transparent border-b border-slate-300 py-3 text-slate-900 font-light placeholder-slate-300 focus:outline-none focus:border-slate-900 transition-colors resize-none"
                 placeholder="Share your vision, aesthetic, and what drew you to our work..."
@@ -184,9 +184,14 @@ const Booking = () => {
             <button
               type="submit"
               disabled={status === 'sending'}
-              className="mt-8 px-12 py-4 bg-slate-900 text-white text-xs uppercase tracking-[0.2em] hover:bg-slate-800 transition-colors w-full md:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-busy={status === 'sending'}
+              className={`relative mt-8 px-12 py-4 text-xs uppercase tracking-[0.2em] w-full md:w-auto inline-flex items-center justify-center overflow-hidden ${
+                status === 'sending'
+                  ? 'bg-slate-200 text-transparent cursor-wait'
+                  : 'bg-slate-900 text-white hover:bg-slate-800'
+              }`}
             >
-              {status === 'sending' ? 'Sending...' : 'Send Inquiry'}
+              <span className={status === 'sending' ? 'invisible' : 'visible'}>Send Inquiry</span>
             </button>
 
             {status === 'success' && (
