@@ -132,7 +132,7 @@ const Home = () => {
               <div className="overflow-hidden"><div className="hero-text-line">Honest</div></div>
             </h1>
             <p className="hero-desc text-sm md:text-base text-slate-600 font-light mb-8 max-w-md leading-relaxed">
-              Premium photography for weddings, editorials, and lifestyle. Based in Philadelphia, traveling worldwide.
+              Premium photography for weddings, editorials, and lifestyle. Based in Philadelphia and NYC, traveling worldwide.
             </p>
             <Link
               to="/booking"
@@ -168,7 +168,7 @@ const Home = () => {
           <div>
             <div className="mb-8 flex flex-col items-center text-center">
               <h3 className="text-3xl font-light text-slate-900 mb-3">Molly and Brandon</h3>
-              <p className="text-sm text-slate-400 font-light uppercase tracking-widest">Amalfi Coast, Italy • Summer 2026</p>
+              <p className="text-sm text-slate-400 font-light uppercase tracking-widest">Green Lane, Pennsylvania • Summer 2025</p>
             </div>
             <div className="grid grid-cols-12 gap-4 md:gap-8 items-start">
               {wedding1Images.map((img, i) => (
