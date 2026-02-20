@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import { AdvancedImage } from '@cloudinary/react';
 import { cld } from '../utils/cloudinary';
 
@@ -42,17 +44,17 @@ const About = () => {
               receives an unparalleled, bespoke experience.
             </p>
           </div>
-
-          <div className="mt-16 pt-16 border-t border-slate-100">
-            <h3 className="text-lg font-light text-slate-900 mb-4">Features & Press</h3>
-            <ul className="flex flex-wrap gap-8 text-xs uppercase tracking-widest text-slate-400">
-              <li>Vogue Weddings</li>
-              <li>The Anti-Bride</li>
-              <li>Harper's Bazaar</li>
-              <li>Together Journal</li>
-            </ul>
-          </div>
         </div>
+      </div>
+
+      <div className="flex justify-center mt-20 mb-4">
+        <Link
+          to="/booking"
+          className="group inline-flex items-center gap-4 px-8 py-4 bg-slate-900 text-white hover:bg-slate-800 text-xs uppercase tracking-[0.2em] transition-colors duration-300"
+        >
+          <span>REACH OUT</span>
+          <ArrowRight size={16} strokeWidth={1} className="group-hover:translate-x-2 transition-transform duration-300" />
+        </Link>
       </div>
     </div>
   );
