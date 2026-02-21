@@ -1168,6 +1168,47 @@ const Booking = () => {
               }}
             >
               <form onSubmit={handleSubmit}>
+                <style>
+                  {`
+                    .sending-state label,
+                    .sending-state button[type="button"] {
+                      opacity: 0 !important;
+                      transition: opacity 0.3s ease;
+                    }
+                    .sending-state input,
+                    .sending-state textarea {
+                      color: transparent !important;
+                      -webkit-text-fill-color: transparent !important;
+                      transition: color 0.3s ease, -webkit-text-fill-color 0.3s ease;
+                    }
+                    .sending-state input:-webkit-autofill,
+                    .sending-state input:-webkit-autofill:hover, 
+                    .sending-state input:-webkit-autofill:focus, 
+                    .sending-state input:-webkit-autofill:active,
+                    .sending-state textarea:-webkit-autofill,
+                    .sending-state textarea:-webkit-autofill:hover,
+                    .sending-state textarea:-webkit-autofill:focus,
+                    .sending-state textarea:-webkit-autofill:active {
+                      -webkit-box-shadow: 0 0 0 30px #242424 inset !important;
+                      -webkit-text-fill-color: transparent !important;
+                      transition: background-color 5000s ease-in-out 0s, -webkit-text-fill-color 0.3s ease !important;
+                    }
+                    .sending-state input::placeholder,
+                    .sending-state textarea::placeholder {
+                      color: transparent !important;
+                    }
+                    .sending-state input::-webkit-calendar-picker-indicator {
+                      opacity: 0 !important;
+                      transition: opacity 0.3s ease;
+                    }
+                  `}
+                </style>
+                <div
+                  className={status === 'sending' ? 'sending-state' : ''}
+                  style={{
+                    pointerEvents: status === 'sending' ? 'none' : 'auto',
+                  }}
+                >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
                   <div>
                     <label htmlFor="name" className="block text-xs uppercase tracking-widest mb-5" style={{ color: '#FFFFFF' }}>
@@ -1302,12 +1343,13 @@ const Booking = () => {
                     />
                   </div>
                 </div>
+                </div>
 
                 <div className="flex justify-center mt-9">
                   <button
                     type="submit"
                     disabled={status === 'sending'}
-                    className="flex items-center justify-center cursor-pointer"
+                    className="flex items-center justify-center cursor-pointer transition-opacity duration-300"
                     style={{
                       width: 143,
                       height: 24,
@@ -1318,9 +1360,10 @@ const Booking = () => {
                       fontWeight: 400,
                       fontSize: 14,
                       border: 'none',
+                      opacity: status === 'sending' ? 0.8 : 1,
                     }}
                   >
-                    {status === 'sending' ? '...' : 'Submit'}
+                    {status === 'sending' ? '' : 'Submit'}
                   </button>
                 </div>
 

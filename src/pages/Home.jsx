@@ -7,6 +7,7 @@ import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import emailjs from '@emailjs/browser';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -249,6 +250,43 @@ const useStaggerReveal = (shouldAnimate) => {
 const Home = () => {
   const [visibleSet, setVisibleSet] = useState([0, 1, 2]);
   const [departingIdx, setDepartingIdx] = useState(null);
+
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [quoteForm, setQuoteForm] = useState({ phone: '' });
+  const [quoteStatus, setQuoteStatus] = useState('idle');
+
+  const handleQuoteSubmit = (e) => {
+    e.preventDefault();
+    setQuoteStatus('sending');
+    
+    emailjs
+      .send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        {
+          name: 'Quick Quote Request',
+          email: 'quote@request.com',
+          phone: quoteForm.phone,
+          date: '',
+          time: new Date().toLocaleString(),
+          location: '',
+          message: `Quick quote request.\nPhone: ${quoteForm.phone}`,
+          reply_to: 'quote@request.com',
+        },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+      )
+      .then(() => {
+        setQuoteStatus('success');
+        setTimeout(() => {
+          setShowQuoteModal(false);
+          setQuoteStatus('idle');
+          setQuoteForm({ phone: '' });
+        }, 3000);
+      })
+      .catch(() => {
+        setQuoteStatus('error');
+      });
+  };
   const stackIntervalRef = useRef(null);
   const stackRef = useRef(null);
   const visibleSetRef = useRef([0, 1, 2]);
@@ -507,13 +545,13 @@ const Home = () => {
             <p className="hero-desc text-sm md:text-base text-slate-600 font-light mb-8 max-w-md leading-relaxed">
               Premium photography for weddings, editorials, and lifestyle. Based in Philadelphia and NYC, traveling worldwide.
             </p>
-            <Link
-              to="/booking"
+            <button
+              onClick={() => setShowQuoteModal(true)}
               className="hero-link group inline-flex items-center justify-center gap-1.5 w-[112px] h-[24px] bg-[#242424] text-white rounded-[17px] text-[12px] font-normal hover:bg-black transition-colors"
             >
               <span>Reach Out</span>
               <ArrowRight size={14} strokeWidth={1.5} className="group-hover:translate-x-1 transition-transform duration-300" />
-            </Link>
+            </button>
           </div>
           
           {/* Staggered Image Stack */}
@@ -690,15 +728,138 @@ const Home = () => {
         )}
 
         <div className="flex justify-center mt-12 mb-4">
-          <Link
-            to="/booking"
+          <button
+            onClick={() => setShowQuoteModal(true)}
             className="group inline-flex items-center justify-center gap-1.5 w-[112px] h-[24px] bg-[#242424] text-white rounded-[17px] text-[12px] font-normal hover:bg-black transition-colors duration-300"
           >
             <span>Reach Out</span>
             <ArrowRight size={14} strokeWidth={1.5} className="group-hover:translate-x-1 transition-transform duration-300" />
-          </Link>
+          </button>
         </div>
       </section>
+
+      {/* Quote Modal */}
+      {showQuoteModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ animation: 'lightboxIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
+        >
+          <div
+            className="absolute inset-0 bg-white/70 backdrop-blur-3xl"
+            onClick={() => setShowQuoteModal(false)}
+          />
+
+          <button
+            onClick={() => setShowQuoteModal(false)}
+            className="absolute top-8 right-8 z-20 p-2 text-slate-400 hover:text-slate-800 transition-colors duration-300"
+            aria-label="Close"
+          >
+            <X size={18} strokeWidth={1.5} />
+          </button>
+
+          <div
+            className="relative z-10 w-full animate-fade-in"
+            style={{
+              maxWidth: 608,
+              borderRadius: 22,
+              backgroundColor: '#242424',
+              border: '1px solid #000000',
+              padding: '36px 44px',
+            }}
+          >
+            <form onSubmit={handleQuoteSubmit}>
+              <style>
+                {`
+                  .sending-state label,
+                  .sending-state h3,
+                  .sending-state p {
+                    opacity: 0 !important;
+                    transition: opacity 0.3s ease;
+                  }
+                  .sending-state input {
+                    color: transparent !important;
+                    -webkit-text-fill-color: transparent !important;
+                    transition: color 0.3s ease, -webkit-text-fill-color 0.3s ease;
+                  }
+                  .sending-state input:-webkit-autofill,
+                  .sending-state input:-webkit-autofill:hover, 
+                  .sending-state input:-webkit-autofill:focus, 
+                  .sending-state input:-webkit-autofill:active {
+                    -webkit-box-shadow: 0 0 0 30px #242424 inset !important;
+                    -webkit-text-fill-color: transparent !important;
+                    transition: background-color 5000s ease-in-out 0s, -webkit-text-fill-color 0.3s ease !important;
+                  }
+                  .sending-state input::placeholder {
+                    color: transparent !important;
+                  }
+                `}
+              </style>
+              <div
+                className={quoteStatus === 'sending' ? 'sending-state' : ''}
+                style={{
+                  pointerEvents: quoteStatus === 'sending' ? 'none' : 'auto',
+                }}
+              >
+              <div className="mb-8 text-center">
+                <h3 className="text-white text-xl font-serif tracking-wide mb-2">Request a Quote</h3>
+                <p className="text-slate-400 text-sm font-light">Enter your details and we'll reach out to you shortly.</p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-y-7">
+                <div>
+                  <label htmlFor="quote-phone" className="block text-xs uppercase tracking-widest mb-4" style={{ color: '#FFFFFF' }}>
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="quote-phone"
+                    value={quoteForm.phone}
+                    onChange={(e) => setQuoteForm({ phone: e.target.value })}
+                    required
+                    className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
+                    style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
+                  />
+                </div>
+              </div>
+
+              </div>
+
+              <div className="flex justify-center mt-9">
+                <button
+                  type="submit"
+                  disabled={quoteStatus === 'sending'}
+                  className="flex items-center justify-center cursor-pointer transition-opacity duration-300"
+                  style={{
+                    width: 143,
+                    height: 24,
+                    backgroundColor: '#F7F7F7',
+                    borderRadius: 6,
+                    color: '#000000',
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 400,
+                    fontSize: 14,
+                    border: 'none',
+                    opacity: quoteStatus === 'sending' ? 0.8 : 1,
+                  }}
+                >
+                  {quoteStatus === 'sending' ? '' : 'Get a Quote'}
+                </button>
+              </div>
+
+              {quoteStatus === 'success' && (
+                <p className="text-green-400 text-sm font-light mt-6 text-center">
+                  Thank you! We'll be in touch shortly.
+                </p>
+              )}
+              {quoteStatus === 'error' && (
+                <p className="text-red-400 text-sm font-light mt-6 text-center">
+                  Something went wrong. Please try again later.
+                </p>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Lightbox */}
       {lightbox && (
