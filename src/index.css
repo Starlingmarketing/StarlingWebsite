@@ -34,3 +34,15 @@
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
+
+.group:hover .hero-dots,
+.hero-dots:focus-within {
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .hero-dots {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}

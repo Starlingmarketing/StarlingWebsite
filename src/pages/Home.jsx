@@ -19,11 +19,13 @@ const Home = () => {
   ];
 
   const [currentImgIdx, setCurrentImgIdx] = useState(0);
+  const [isManualNav, setIsManualNav] = useState(false);
 
   const intervalRef = useRef(null);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
+      setIsManualNav(false);
       setCurrentImgIdx((prev) => (prev + 1) % heroImages.length);
     }, 12000);
     return () => clearInterval(intervalRef.current);
@@ -31,8 +33,10 @@ const Home = () => {
 
   const goToImage = (idx) => {
     clearInterval(intervalRef.current);
+    setIsManualNav(true);
     setCurrentImgIdx(idx);
     intervalRef.current = setInterval(() => {
+      setIsManualNav(false);
       setCurrentImgIdx((prev) => (prev + 1) % heroImages.length);
     }, 12000);
   };
@@ -81,7 +85,6 @@ const Home = () => {
     gsap.set('.hero-link', { y: 10, opacity: 0 });
     gsap.set('.hero-img-wrapper', { opacity: 0, y: 28 });
     gsap.set('.hero-img', { scale: 1.06, transformOrigin: '50% 50%' });
-    gsap.set('.hero-dots', { opacity: 0 });
 
     if (prefersReducedMotion) {
       gsap.set('.hero-eyebrow', { y: 0, opacity: 1 });
@@ -90,7 +93,6 @@ const Home = () => {
       gsap.set('.hero-link', { y: 0, opacity: 1 });
       gsap.set('.hero-img-wrapper', { y: 0, opacity: 1 });
       gsap.set('.hero-img', { scale: 1, clearProps: 'transform' });
-      gsap.set('.hero-dots', { opacity: 1 });
       return;
     }
 
@@ -158,15 +160,6 @@ const Home = () => {
           clearProps: 'transform',
         },
         0.18
-      )
-      .to(
-        '.hero-dots',
-        {
-          opacity: 1,
-          duration: 0.8,
-          ease: 'power2.out',
-        },
-        0.6
       );
   }, { scope: container });
 
@@ -259,12 +252,14 @@ const Home = () => {
           </div>
           
           {/* Image Container */}
-          <div className="w-full lg:w-6/12 order-1 lg:order-2 h-[40vh] lg:h-[50vh] py-4 lg:py-6 flex items-center justify-center relative">
+          <div className="w-full lg:w-6/12 order-1 lg:order-2 h-[40vh] lg:h-[50vh] py-4 lg:py-6 flex items-center justify-center relative group">
             <div className="hero-img-wrapper relative w-full h-full overflow-hidden bg-transparent flex items-center justify-center">
               {heroImages.map((img, idx) => (
                 <div 
                   key={idx}
-                  className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
+                  className={`absolute inset-0 w-full h-full transition-opacity ${
+                    isManualNav ? 'duration-300 ease-out' : 'duration-1000 ease-in-out'
+                  } ${
                     idx === currentImgIdx ? 'opacity-100 z-10' : 'opacity-0 z-0'
                   }`}
                 >
@@ -276,20 +271,22 @@ const Home = () => {
                 </div>
               ))}
             </div>
-            <div className="hero-dots absolute bottom-0 left-0 right-0 flex items-center justify-center gap-2.5">
+            <div className="hero-dots absolute bottom-0 left-0 right-0 z-20 flex items-center justify-center gap-2.5 opacity-0 pointer-events-none transition-opacity duration-300 ease-out group-hover:opacity-100 focus-within:opacity-100">
               {heroImages.map((_, idx) => (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => goToImage(idx)}
-                  className={`relative h-[5px] rounded-full overflow-hidden focus:outline-none transition-all duration-500 ease-out ${
-                    idx === currentImgIdx ? 'w-6' : 'w-[5px]'
+                  className={`group/dot relative rounded-full overflow-hidden cursor-pointer focus:outline-none transition-transform duration-700 ease-out hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-slate-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
+                    idx === currentImgIdx ? 'w-6 h-[6px]' : 'w-[6px] h-[6px]'
                   }`}
                   aria-label={`View image ${idx + 1}`}
+                  aria-current={idx === currentImgIdx ? 'true' : undefined}
                 >
-                  <span className="absolute inset-0 bg-slate-200 rounded-full" />
+                  <span className="absolute inset-0 bg-slate-200 rounded-full transition-colors duration-300 group-hover/dot:bg-slate-300" />
                   {idx === currentImgIdx && (
                     <span
-                      className="absolute inset-0 bg-slate-400 rounded-full"
+                      className="absolute inset-0 bg-slate-400 rounded-full transition-colors duration-300 group-hover/dot:bg-slate-500"
                       style={{
                         animation: 'dotProgress 12s linear forwards',
                         transformOrigin: 'left center',
