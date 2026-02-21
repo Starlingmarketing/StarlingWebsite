@@ -170,6 +170,40 @@ const useSectionMount = (rootMargin = '250px') => {
   return [sectionRef, shouldRender];
 };
 
+const useReveal = (shouldAnimate) => {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!shouldAnimate) return;
+    const node = ref.current;
+    if (!node) return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) return;
+
+    const ctx = gsap.context(() => {
+      gsap.set(node, { opacity: 0, y: 20 });
+
+      ScrollTrigger.create({
+        trigger: node,
+        start: 'top 93%',
+        once: true,
+        onEnter: () => {
+          gsap.to(node, {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+            ease: 'power2.out',
+            clearProps: 'transform',
+          });
+        },
+      });
+    });
+
+    return () => ctx.revert();
+  }, [shouldAnimate]);
+
+  return ref;
+};
+
 const useStaggerReveal = (shouldAnimate) => {
   const gridRef = useRef(null);
 
@@ -178,29 +212,30 @@ const useStaggerReveal = (shouldAnimate) => {
     const node = gridRef.current;
     if (!node) return;
 
-    const items = node.children;
+    const items = [...node.children];
     if (!items.length) return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) return;
 
-    gsap.set(items, { opacity: 0, y: 40, scale: 0.97 });
+    const ctx = gsap.context(() => {
+      gsap.set(items, { opacity: 0, y: 30 });
 
-    const trigger = ScrollTrigger.create({
-      trigger: node,
-      start: 'top 88%',
-      once: true,
-      onEnter: () => {
-        gsap.to(items, {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 1.2,
-          stagger: 0.15,
-          ease: 'expo.out',
-          clearProps: 'transform',
-        });
-      },
+      ScrollTrigger.batch(items, {
+        start: 'top 93%',
+        onEnter: (batch) => {
+          gsap.to(batch, {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: 'power2.out',
+            overwrite: true,
+            clearProps: 'transform',
+          });
+        },
+      });
     });
 
-    return () => trigger.kill();
+    return () => ctx.revert();
   }, [shouldAnimate]);
 
   return gridRef;
@@ -217,6 +252,10 @@ const Home = () => {
   const wedding2GridRef = useStaggerReveal(renderFeatured);
   const wedding1GridRef = useStaggerReveal(renderFeatured);
   const assortedGridRef = useStaggerReveal(renderSelected);
+
+  const wedding2HeaderRef = useReveal(renderFeatured);
+  const wedding1HeaderRef = useReveal(renderFeatured);
+  const selectedDividerRef = useReveal(renderSelected);
 
   const heroImages = useMemo(
     () => HERO_IMAGE_IDS.map((publicId) => buildOptimizedImage(publicId, 2000)),
@@ -522,7 +561,7 @@ const Home = () => {
           <div className="space-y-20">
             {/* Gallery 2 - Makayla and Hunter */}
             <div>
-              <div className="mb-8 flex flex-col items-center text-center">
+              <div ref={wedding2HeaderRef} className="mb-8 flex flex-col items-center text-center">
                 <h3 className="text-3xl font-serif text-slate-900 mb-3">Makayla and Hunter</h3>
                 <p className="text-sm text-slate-400 font-serif uppercase tracking-widest">Glasbern - A Historic Hotel of America • Summer 2025</p>
               </div>
@@ -550,7 +589,7 @@ const Home = () => {
 
             {/* Gallery 1 */}
             <div>
-              <div className="mb-8 flex flex-col items-center text-center">
+              <div ref={wedding1HeaderRef} className="mb-8 flex flex-col items-center text-center">
                 <h3 className="text-3xl font-serif text-slate-900 mb-3">Molly and Brandon</h3>
                 <p className="text-sm text-slate-400 font-serif uppercase tracking-widest">Green Lane, Pennsylvania • Summer 2025</p>
               </div>
@@ -583,7 +622,7 @@ const Home = () => {
 
       {/* Assorted / Selected Work */}
       <section ref={selectedRef} className="px-6 md:px-12 max-w-7xl mx-auto pt-4 pb-20">
-        <div className="flex items-center gap-6 mb-10">
+        <div ref={selectedDividerRef} className="flex items-center gap-6 mb-10">
           <div className="flex-1 h-px bg-slate-200" />
           <h2 className="text-[11px] uppercase tracking-[0.3em] text-slate-400 font-light whitespace-nowrap">Selected Work</h2>
           <div className="flex-1 h-px bg-slate-200" />
