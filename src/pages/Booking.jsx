@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState } from 'react';
 import emailjs from '@emailjs/browser';
 import { cld } from '../utils/cloudinary';
 
@@ -43,6 +43,11 @@ const reviews = [
     avatar: 'unnamed_4_p21mim',
     text: "We are so happy with the results! Pictures were just how we pictured and more! It reflected us so much and Ben was so great and friendly! He made us feel very comfortable, and even considering my husband doesn't like pictures and almost never smiles.. Ben captured the perfect pictures at the perfect moments!!! Thank you so much..100%!!",
   },
+  {
+    name: 'Chris Clore',
+    rating: 5,
+    text: `I had a 5-star experience with Starling Photo Studios! Their attention to detail and creative approach truly set them apart. I cannot thank Ben enough for his incredible work! He listened to my vision, made the session enjoyable, and delivered stunning photos that exceeded all my expectations.\n\nIf you’re looking for exceptional quality and a personal touch, Starling Photo Studios is the way to go!`,
+  },
 ];
 
 const StarIcon = () => (
@@ -65,49 +70,40 @@ const GoogleLogo = () => (
 
 const avatarColors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#7B1FA2', '#FF6D00'];
 
-const marqueeMaskStyle = {
-  maskImage:
-    'linear-gradient(to right, transparent, black clamp(24px, 6vw, 96px), black calc(100% - clamp(24px, 6vw, 96px)), transparent)',
-  WebkitMaskImage:
-    'linear-gradient(to right, transparent, black clamp(24px, 6vw, 96px), black calc(100% - clamp(24px, 6vw, 96px)), transparent)',
-};
-
 const ReviewCard = ({ review, index }) => (
-  <div className="flex-shrink-0 w-[340px] md:w-[400px] bg-white rounded-lg border border-slate-200 p-5 flex flex-col justify-between">
-    <div>
-      <div className="flex items-start gap-3 mb-3">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          {review.avatar ? (
-            <img
-              src={cld.image(review.avatar).toURL()}
-              alt={review.name}
-              className="w-10 h-10 flex-shrink-0"
-            />
-          ) : (
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0"
-              style={{ backgroundColor: avatarColors[index % avatarColors.length] }}
-            >
-              {review.name.charAt(0)}
-            </div>
-          )}
-          <div>
-            <p className="text-slate-900 text-sm font-medium leading-tight">{review.name}</p>
-            <div className="flex items-center gap-0.5 mt-1">
-              {Array.from({ length: review.rating }, (_, i) => (
-                <StarIcon key={i} />
-              ))}
-            </div>
+  <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
+    <div className="flex items-start gap-3 mb-3">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        {review.avatar ? (
+          <img
+            src={cld.image(review.avatar).toURL()}
+            alt={review.name}
+            className="w-10 h-10 flex-shrink-0"
+          />
+        ) : (
+          <div
+            className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0"
+            style={{ backgroundColor: avatarColors[index % avatarColors.length] }}
+          >
+            {review.name.charAt(0)}
+          </div>
+        )}
+        <div className="min-w-0">
+          <p className="text-slate-900 text-sm font-medium leading-tight truncate">{review.name}</p>
+          <div className="flex items-center gap-0.5 mt-1">
+            {Array.from({ length: review.rating }, (_, i) => (
+              <StarIcon key={i} />
+            ))}
           </div>
         </div>
-        <div className="flex-shrink-0">
-          <GoogleLogo />
-        </div>
       </div>
-      <p className="text-slate-700 text-[13px] leading-relaxed mt-3">
-        {review.text}
-      </p>
+      <div className="flex-shrink-0">
+        <GoogleLogo />
+      </div>
     </div>
+    <p className="text-slate-700 text-[13px] leading-relaxed mt-3 line-clamp-[7]">
+      {review.text}
+    </p>
   </div>
 );
 
@@ -147,46 +143,44 @@ const shortReviews = [
 ];
 
 const ShortReviewCard = ({ review, index }) => (
-  <div className="flex-shrink-0 w-[270px] md:w-[310px] bg-white rounded-lg border border-slate-200 p-4 flex flex-col justify-between">
-    <div>
-      <div className="flex items-start gap-3 mb-2">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          {review.avatar ? (
-            <img
-              src={cld.image(review.avatar).toURL()}
-              alt={review.name}
-              className="w-9 h-9 flex-shrink-0"
-            />
-          ) : (
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0"
-              style={{ backgroundColor: avatarColors[index % avatarColors.length] }}
-            >
-              {review.name.charAt(0)}
-            </div>
-          )}
-          <div>
-            <p className="text-slate-900 text-sm font-medium leading-tight">{review.name}</p>
-            <div className="flex items-center gap-0.5 mt-0.5">
-              {Array.from({ length: review.rating }, (_, i) => (
-                <StarIcon key={i} />
-              ))}
-            </div>
+  <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
+    <div className="flex items-start gap-3 mb-2">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        {review.avatar ? (
+          <img
+            src={cld.image(review.avatar).toURL()}
+            alt={review.name}
+            className="w-9 h-9 flex-shrink-0"
+          />
+        ) : (
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0"
+            style={{ backgroundColor: avatarColors[index % avatarColors.length] }}
+          >
+            {review.name.charAt(0)}
+          </div>
+        )}
+        <div className="min-w-0">
+          <p className="text-slate-900 text-sm font-medium leading-tight truncate">{review.name}</p>
+          <div className="flex items-center gap-0.5 mt-0.5">
+            {Array.from({ length: review.rating }, (_, i) => (
+              <StarIcon key={i} />
+            ))}
           </div>
         </div>
-        <div className="flex-shrink-0">
-          <GoogleLogo />
-        </div>
       </div>
-      <p className="text-slate-700 text-[13px] leading-relaxed mt-2">
-        {review.text}
-      </p>
+      <div className="flex-shrink-0">
+        <GoogleLogo />
+      </div>
     </div>
+    <p className="text-slate-700 text-[13px] leading-relaxed mt-2 line-clamp-5">
+      {review.text}
+    </p>
   </div>
 );
 
 const StarOnlyCard = ({ review, index }) => (
-  <div className="flex-shrink-0 w-[220px] bg-white rounded-lg border border-slate-200 p-4 flex items-center gap-3">
+  <div className="bg-white rounded-lg border border-slate-200 p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
     {review.avatar ? (
       <img
         src={cld.image(review.avatar).toURL()}
@@ -215,133 +209,47 @@ const StarOnlyCard = ({ review, index }) => (
   </div>
 );
 
-const MAX_MARQUEE_COPIES = 30;
+const ReviewsGrid = () => {
+  const bigRemainder = reviews.length % 3;
+  const promotedCount = bigRemainder === 0 ? 0 : 3 - bigRemainder;
 
-const MarqueeRow = ({ items, CardComponent, direction = 'left', speed = 0.4, className = '' }) => {
-  const viewportRef = useRef(null);
-  const trackRef = useRef(null);
-  const setRef = useRef(null);
+  const promotedShortReviews = shortReviews.slice(0, promotedCount);
+  const remainingShortReviews = shortReviews.slice(promotedCount);
 
-  const [isPaused, setIsPaused] = useState(false);
-  const [copies, setCopies] = useState(2);
-
-  const posRef = useRef(0);
-  const rafRef = useRef(null);
-  const loopWidthRef = useRef(0);
-
-  const syncCopies = () => {
-    const viewportEl = viewportRef.current;
-    const setEl = setRef.current;
-    if (!viewportEl || !setEl) return;
-
-    const viewportWidth = viewportEl.offsetWidth;
-    const loopWidth = setEl.offsetWidth;
-    if (!viewportWidth || !loopWidth) return;
-
-    loopWidthRef.current = loopWidth;
-    const neededCopies = Math.max(2, Math.ceil((viewportWidth + loopWidth) / loopWidth));
-    const nextCopies = Math.min(neededCopies, MAX_MARQUEE_COPIES);
-
-    setCopies((prev) => (prev === nextCopies ? prev : nextCopies));
-
-    // Keep the reverse row positioned so it doesn't reveal the "start" edge.
-    if (direction === 'right' && posRef.current === 0) {
-      posRef.current = -loopWidth;
-      if (trackRef.current) {
-        trackRef.current.style.transform = `translateX(${posRef.current}px)`;
-      }
-    }
-  };
-
-  useLayoutEffect(() => {
-    syncCopies();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const viewportEl = viewportRef.current;
-    const setEl = setRef.current;
-    if (!viewportEl || !setEl) return;
-
-    syncCopies();
-
-    const ro = new ResizeObserver(() => {
-      syncCopies();
-    });
-
-    ro.observe(viewportEl);
-    ro.observe(setEl);
-
-    return () => ro.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [direction, items.length]);
-
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-
-    const step = () => {
-      const loopWidth = loopWidthRef.current;
-
-      if (loopWidth && !isPaused) {
-        if (direction === 'left') {
-          posRef.current -= speed;
-          if (posRef.current <= -loopWidth) {
-            posRef.current = 0;
-          }
-        } else {
-          posRef.current += speed;
-          if (posRef.current >= 0) {
-            posRef.current = -loopWidth;
-          }
-        }
-
-        track.style.transform = `translateX(${posRef.current}px)`;
-      }
-
-      rafRef.current = requestAnimationFrame(step);
-    };
-
-    rafRef.current = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [direction, isPaused, speed]);
-
-  return (
-    <div
-      ref={viewportRef}
-      className={`overflow-hidden py-4 px-4 ${className}`}
-      style={marqueeMaskStyle}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      <div ref={trackRef} className="flex w-max will-change-transform">
-        {Array.from({ length: copies }, (_, copyIndex) => (
-          <div
-            key={copyIndex}
-            ref={copyIndex === 0 ? setRef : undefined}
-            className="flex gap-6 pr-6 w-max"
-            aria-hidden={copyIndex > 0}
-          >
-            {items.map((review, itemIndex) => (
-              <CardComponent key={`${copyIndex}-${itemIndex}`} review={review} index={itemIndex} />
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const ReviewSlider = () => {
   return (
     <section className="mt-24 w-full">
-      <h2 className="text-center text-xs uppercase tracking-[0.2em] text-slate-400 mb-10">
-        What Our Clients Say
-      </h2>
+      <div className="px-6 md:px-12 max-w-7xl mx-auto">
+        <h2 className="text-center text-xs uppercase tracking-[0.2em] text-slate-400">
+          What Our Clients Say
+        </h2>
 
-      <MarqueeRow items={reviews} CardComponent={ReviewCard} direction="left" />
-      <MarqueeRow items={starOnlyReviews} CardComponent={StarOnlyCard} direction="right" className="mt-2" />
-      <MarqueeRow items={shortReviews} CardComponent={ShortReviewCard} direction="left" className="mt-2" />
+        <div className="mt-10 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {reviews.map((review, index) => (
+              <ReviewCard key={`featured-${review.name}`} review={review} index={index} />
+            ))}
+            {promotedShortReviews.map((review, index) => (
+              <ReviewCard
+                key={`promoted-${review.name}`}
+                review={review}
+                index={reviews.length + index}
+              />
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {remainingShortReviews.map((review, index) => (
+              <ShortReviewCard key={`short-${review.name}`} review={review} index={index} />
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {starOnlyReviews.map((review, index) => (
+              <StarOnlyCard key={`stars-${review.name}`} review={review} index={index} />
+            ))}
+          </div>
+        </div>
+      </div>
     </section>
   );
 };
@@ -412,25 +320,7 @@ const Booking = () => {
   return (
     <div className="animate-fade-in opacity-0 min-h-screen py-12 md:py-24">
       <div className="px-6 md:px-12 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32">
-          {/* Info Section */}
-          <div>
-            <h1 className="text-4xl md:text-5xl font-light tracking-tight text-slate-900 mb-8">
-              Inquire
-            </h1>
-            <p className="text-slate-500 font-light leading-relaxed mb-12 max-w-md">
-              We know how exciting it is to start planning your shoot, so we make it a priority to get back to you as quickly as possible. From our very first chat to the moment you receive your final gallery, we are completely dedicated to giving you an exceptional experience and capturing photos you'll treasure forever. Let's create something beautiful together!
-            </p>
-
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-xs uppercase tracking-widest text-slate-400 mb-2">Email</h3>
-                <p className="text-slate-900 font-light">starlingphotostudios@gmail.com</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Form Section */}
+        <div className="max-w-2xl mx-auto">
           <div className="bg-slate-50/50 p-8 md:p-12">
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -555,7 +445,7 @@ const Booking = () => {
         </div>
       </div>
 
-      <ReviewSlider />
+      <ReviewsGrid />
     </div>
   );
 };
