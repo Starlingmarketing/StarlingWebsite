@@ -1157,7 +1157,7 @@ const Booking = () => {
 
           <div className="mt-10 lg:mt-0 lg:col-start-1 lg:row-start-1 lg:flex lg:items-start lg:justify-center lg:pointer-events-none lg:z-10 lg:pt-[114px]">
             <div
-              className="mx-auto lg:pointer-events-auto"
+              className="mx-auto lg:pointer-events-auto relative overflow-hidden"
               style={{
                 width: '100%',
                 maxWidth: 608,
@@ -1167,82 +1167,97 @@ const Booking = () => {
                 padding: '36px 44px',
               }}
             >
-              <form onSubmit={handleSubmit}>
-                <style>
-                  {`
-                    .sending-state label,
-                    .sending-state button[type="button"] {
-                      opacity: 0 !important;
-                      transition: opacity 0.3s ease;
-                    }
-                    .sending-state input,
-                    .sending-state textarea {
-                      color: transparent !important;
-                      -webkit-text-fill-color: transparent !important;
-                      transition: color 0.3s ease, -webkit-text-fill-color 0.3s ease;
-                    }
-                    .sending-state input:-webkit-autofill,
-                    .sending-state input:-webkit-autofill:hover, 
-                    .sending-state input:-webkit-autofill:focus, 
-                    .sending-state input:-webkit-autofill:active,
-                    .sending-state textarea:-webkit-autofill,
-                    .sending-state textarea:-webkit-autofill:hover,
-                    .sending-state textarea:-webkit-autofill:focus,
-                    .sending-state textarea:-webkit-autofill:active {
-                      -webkit-box-shadow: 0 0 0 30px #242424 inset !important;
-                      -webkit-text-fill-color: transparent !important;
-                      transition: background-color 5000s ease-in-out 0s, -webkit-text-fill-color 0.3s ease !important;
-                    }
-                    .sending-state input::placeholder,
-                    .sending-state textarea::placeholder {
-                      color: transparent !important;
-                    }
-                    .sending-state input::-webkit-calendar-picker-indicator {
-                      opacity: 0 !important;
-                      transition: opacity 0.3s ease;
-                    }
-                  `}
-                </style>
-                <div
-                  className={status === 'sending' ? 'sending-state' : ''}
+              <div
+                className={`absolute inset-0 flex flex-col items-center justify-between transition-all ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                  status === 'success' 
+                    ? 'opacity-100 translate-y-0 z-10 pointer-events-auto duration-1000 delay-500' 
+                    : 'opacity-0 translate-y-8 -z-10 pointer-events-none duration-500 delay-0'
+                }`}
+                style={{ padding: '36px 44px' }}
+              >
+                <div className="flex-1 flex items-center justify-center w-full">
+                  <p className="text-white text-center font-light" style={{ fontFamily: 'Inter, sans-serif', fontSize: '18px', lineHeight: '1.5' }}>
+                    Thank you for your submission.
+                    <br />
+                    We'll be in touch shortly.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStatus('idle')}
+                  className="flex items-center justify-center cursor-pointer transition-opacity duration-300 hover:opacity-80 shrink-0"
                   style={{
-                    pointerEvents: status === 'sending' ? 'none' : 'auto',
+                    width: 143,
+                    height: 24,
+                    backgroundColor: '#F7F7F7',
+                    borderRadius: 6,
+                    color: '#000000',
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 400,
+                    fontSize: 14,
+                    border: 'none',
                   }}
                 >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
-                  <div>
-                    <label htmlFor="name" className="block text-xs uppercase tracking-widest mb-5" style={{ color: '#FFFFFF' }}>
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
-                      style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="email" className="block text-xs uppercase tracking-widest mb-5" style={{ color: '#FFFFFF' }}>
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
-                      style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
-                    />
-                  </div>
-                </div>
+                  New Inquiry
+                </button>
+              </div>
 
-                <div className="mt-7">
+              <div
+                className={`transition-all ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                  status === 'success' 
+                    ? 'pointer-events-none' 
+                    : 'pointer-events-auto'
+                }`}
+              >
+                <form onSubmit={handleSubmit} className="w-full">
+                <div
+                  style={{
+                    pointerEvents: (status === 'sending' || status === 'success') ? 'none' : 'auto',
+                  }}
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
+                    <div
+                      className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(status === 'sending' || status === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                      style={{ transitionDelay: (status === 'sending' || status === 'success') ? '0ms' : '300ms' }}
+                    >
+                      <label htmlFor="name" className="block text-xs uppercase tracking-widest mb-5" style={{ color: '#FFFFFF' }}>
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
+                        style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
+                      />
+                    </div>
+                    <div
+                      className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(status === 'sending' || status === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                      style={{ transitionDelay: (status === 'sending' || status === 'success') ? '50ms' : '350ms' }}
+                    >
+                      <label htmlFor="email" className="block text-xs uppercase tracking-widest mb-5" style={{ color: '#FFFFFF' }}>
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
+                        style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
+                      />
+                    </div>
+                  </div>
+
+                <div 
+                  className={`mt-7 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(status === 'sending' || status === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                  style={{ transitionDelay: (status === 'sending' || status === 'success') ? '100ms' : '400ms' }}
+                >
                   <label htmlFor="phone" className="block text-xs uppercase tracking-widest mb-5" style={{ color: '#FFFFFF' }}>
                     Phone Number
                   </label>
@@ -1258,94 +1273,127 @@ const Booking = () => {
                 </div>
 
                 <div className="flex justify-between mt-7">
-                  <button
-                    type="button"
-                    onClick={() => setShowDate((v) => !v)}
-                    className="text-sm font-light cursor-pointer transition-opacity hover:opacity-70"
-                    style={{ color: '#636363' }}
+                  <div
+                    className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(status === 'sending' || status === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                    style={{ transitionDelay: (status === 'sending' || status === 'success') ? '150ms' : '450ms' }}
                   >
-                    {showDate ? '−' : '+'} event date
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowLocation((v) => !v)}
-                    className="text-sm font-light cursor-pointer transition-opacity hover:opacity-70"
-                    style={{ color: '#636363' }}
+                    <button
+                      type="button"
+                      onClick={() => setShowDate((v) => !v)}
+                      className="text-sm font-light cursor-pointer transition-opacity hover:opacity-70"
+                      style={{ color: '#636363' }}
+                    >
+                      {showDate ? '−' : '+'} event date
+                    </button>
+                  </div>
+                  <div
+                    className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(status === 'sending' || status === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                    style={{ transitionDelay: (status === 'sending' || status === 'success') ? '200ms' : '500ms' }}
                   >
-                    {showLocation ? '−' : '+'} location
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowMessage((v) => !v)}
-                    className="text-sm font-light cursor-pointer transition-opacity hover:opacity-70"
-                    style={{ color: '#636363' }}
+                    <button
+                      type="button"
+                      onClick={() => setShowLocation((v) => !v)}
+                      className="text-sm font-light cursor-pointer transition-opacity hover:opacity-70"
+                      style={{ color: '#636363' }}
+                    >
+                      {showLocation ? '−' : '+'} location
+                    </button>
+                  </div>
+                  <div
+                    className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(status === 'sending' || status === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                    style={{ transitionDelay: (status === 'sending' || status === 'success') ? '250ms' : '550ms' }}
                   >
-                    {showMessage ? '−' : '+'} tell us more
-                  </button>
-                </div>
-
-                <div
-                  className="overflow-hidden transition-all duration-300 ease-in-out"
-                  style={{ maxHeight: showDate ? 100 : 0, opacity: showDate ? 1 : 0 }}
-                >
-                  <div className="mt-6">
-                    <label htmlFor="date" className="block text-xs uppercase tracking-widest mb-4" style={{ color: '#FFFFFF' }}>
-                      Event Date
-                    </label>
-                    <input
-                      type="date"
-                      id="date"
-                      name="date"
-                      value={formData.date}
-                      onChange={handleChange}
-                      className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none [&::-webkit-calendar-picker-indicator]:invert"
-                      style={{ border: 'none', borderBottom: '1px solid #B7B7B7', colorScheme: 'dark' }}
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowMessage((v) => !v)}
+                      className="text-sm font-light cursor-pointer transition-opacity hover:opacity-70"
+                      style={{ color: '#636363' }}
+                    >
+                      {showMessage ? '−' : '+'} tell us more
+                    </button>
                   </div>
                 </div>
 
-                <div
-                  className="overflow-hidden transition-all duration-300 ease-in-out"
-                  style={{ maxHeight: showLocation ? 100 : 0, opacity: showLocation ? 1 : 0 }}
+                <div 
+                  className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(status === 'sending' || status === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                  style={{ transitionDelay: (status === 'sending' || status === 'success') ? '300ms' : '600ms' }}
                 >
-                  <div className="mt-6">
-                    <label htmlFor="location" className="block text-xs uppercase tracking-widest mb-4" style={{ color: '#FFFFFF' }}>
-                      Location / Venue
-                    </label>
-                    <input
-                      type="text"
-                      id="location"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleChange}
-                      className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
-                      style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
-                    />
+                  <div
+                    className="overflow-hidden transition-all duration-300 ease-in-out"
+                    style={{ maxHeight: showDate ? 100 : 0, opacity: showDate ? 1 : 0 }}
+                  >
+                    <div className="mt-6">
+                      <label htmlFor="date" className="block text-xs uppercase tracking-widest mb-4" style={{ color: '#FFFFFF' }}>
+                        Event Date
+                      </label>
+                      <input
+                        type="date"
+                        id="date"
+                        name="date"
+                        value={formData.date}
+                        onChange={handleChange}
+                        className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none [&::-webkit-calendar-picker-indicator]:invert"
+                        style={{ border: 'none', borderBottom: '1px solid #B7B7B7', colorScheme: 'dark' }}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div
-                  className="overflow-hidden transition-all duration-300 ease-in-out"
-                  style={{ maxHeight: showMessage ? 160 : 0, opacity: showMessage ? 1 : 0 }}
+                <div 
+                  className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(status === 'sending' || status === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                  style={{ transitionDelay: (status === 'sending' || status === 'success') ? '350ms' : '650ms' }}
                 >
-                  <div className="mt-6">
-                    <label htmlFor="message" className="block text-xs uppercase tracking-widest mb-4" style={{ color: '#FFFFFF' }}>
-                      Tell Us More
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      rows={3}
-                      className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none resize-none"
-                      style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
-                    />
+                  <div
+                    className="overflow-hidden transition-all duration-300 ease-in-out"
+                    style={{ maxHeight: showLocation ? 100 : 0, opacity: showLocation ? 1 : 0 }}
+                  >
+                    <div className="mt-6">
+                      <label htmlFor="location" className="block text-xs uppercase tracking-widest mb-4" style={{ color: '#FFFFFF' }}>
+                        Location / Venue
+                      </label>
+                      <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        value={formData.location}
+                        onChange={handleChange}
+                        className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
+                        style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div 
+                  className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(status === 'sending' || status === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                  style={{ transitionDelay: (status === 'sending' || status === 'success') ? '400ms' : '700ms' }}
+                >
+                  <div
+                    className="overflow-hidden transition-all duration-300 ease-in-out"
+                    style={{ maxHeight: showMessage ? 160 : 0, opacity: showMessage ? 1 : 0 }}
+                  >
+                    <div className="mt-6">
+                      <label htmlFor="message" className="block text-xs uppercase tracking-widest mb-4" style={{ color: '#FFFFFF' }}>
+                        Tell Us More
+                      </label>
+                      <textarea
+                        id="message"
+                        name="message"
+                        value={formData.message}
+                        onChange={handleChange}
+                        rows={3}
+                        className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none resize-none"
+                        style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
+                      />
+                    </div>
                   </div>
                 </div>
                 </div>
 
-                <div className="flex justify-center mt-9">
+                <div 
+                  className={`flex justify-center mt-9 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(status === 'sending' || status === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                  style={{ transitionDelay: (status === 'sending' || status === 'success') ? '450ms' : '750ms' }}
+                >
                   <button
                     type="submit"
                     disabled={status === 'sending'}
@@ -1363,21 +1411,19 @@ const Booking = () => {
                       opacity: status === 'sending' ? 0.8 : 1,
                     }}
                   >
-                    {status === 'sending' ? '' : 'Submit'}
+                    Submit
                   </button>
                 </div>
 
-                {status === 'success' && (
-                  <p className="text-green-400 text-sm font-light mt-4 text-center">
-                    Thank you for your inquiry — we'll be in touch shortly!
-                  </p>
-                )}
                 {status === 'error' && (
-                  <p className="text-red-400 text-sm font-light mt-4 text-center">
+                  <p 
+                    className={`text-red-400 text-sm font-light mt-4 text-center transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${status === 'error' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
+                  >
                     Something went wrong. Please try again or email us directly.
                   </p>
                 )}
               </form>
+              </div>
             </div>
 
           </div>
