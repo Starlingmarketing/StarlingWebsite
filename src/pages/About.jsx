@@ -9,8 +9,19 @@ const About = () => {
   const aboutImage = cld.image('AF1I5294_gu67ej');
 
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [isClosingQuoteModal, setIsClosingQuoteModal] = useState(false);
   const [quoteForm, setQuoteForm] = useState({ phone: '' });
   const [quoteStatus, setQuoteStatus] = useState('idle');
+
+  const closeQuoteModal = (isSlow = false) => {
+    setIsClosingQuoteModal(isSlow ? 'slow' : 'fast');
+    setTimeout(() => {
+      setShowQuoteModal(false);
+      setQuoteStatus('idle');
+      setQuoteForm({ phone: '' });
+      setIsClosingQuoteModal(false);
+    }, isSlow ? 1500 : 350);
+  };
 
   const handleQuoteSubmit = (e) => {
     e.preventDefault();
@@ -35,9 +46,7 @@ const About = () => {
       .then(() => {
         setQuoteStatus('success');
         setTimeout(() => {
-          setShowQuoteModal(false);
-          setQuoteStatus('idle');
-          setQuoteForm({ phone: '' });
+          closeQuoteModal(true);
         }, 3000);
       })
       .catch(() => {
@@ -104,15 +113,21 @@ const About = () => {
       {showQuoteModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          style={{ animation: 'lightboxIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
+          style={{
+            animation: isClosingQuoteModal === 'slow'
+              ? 'lightboxOut 1.5s cubic-bezier(0.23,1,0.32,1) forwards'
+              : isClosingQuoteModal === 'fast'
+              ? 'lightboxOut 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+              : 'lightboxIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+          }}
         >
           <div
             className="absolute inset-0 bg-white/70 backdrop-blur-3xl"
-            onClick={() => setShowQuoteModal(false)}
+            onClick={() => closeQuoteModal(false)}
           />
 
           <button
-            onClick={() => setShowQuoteModal(false)}
+            onClick={() => closeQuoteModal(false)}
             className="absolute top-8 right-8 z-20 p-2 text-slate-400 hover:text-slate-800 transition-colors duration-300"
             aria-label="Close"
           >
@@ -130,94 +145,93 @@ const About = () => {
             }}
           >
             <form onSubmit={handleQuoteSubmit}>
-              <style>
-                {`
-                  .sending-state label,
-                  .sending-state h3,
-                  .sending-state p {
-                    opacity: 0 !important;
-                    transition: opacity 0.3s ease;
-                  }
-                  .sending-state input {
-                    color: transparent !important;
-                    -webkit-text-fill-color: transparent !important;
-                    transition: color 0.3s ease, -webkit-text-fill-color 0.3s ease;
-                  }
-                  .sending-state input:-webkit-autofill,
-                  .sending-state input:-webkit-autofill:hover, 
-                  .sending-state input:-webkit-autofill:focus, 
-                  .sending-state input:-webkit-autofill:active {
-                    -webkit-box-shadow: 0 0 0 30px #242424 inset !important;
-                    -webkit-text-fill-color: transparent !important;
-                    transition: background-color 5000s ease-in-out 0s, -webkit-text-fill-color 0.3s ease !important;
-                  }
-                  .sending-state input::placeholder {
-                    color: transparent !important;
-                  }
-                `}
-              </style>
               <div
-                className={quoteStatus === 'sending' ? 'sending-state' : ''}
-                style={{
-                  pointerEvents: quoteStatus === 'sending' ? 'none' : 'auto',
-                }}
+                className={`absolute inset-0 flex flex-col items-center justify-center transition-all ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                  quoteStatus === 'success' 
+                    ? 'opacity-100 translate-y-0 z-10 pointer-events-auto duration-1000 delay-500' 
+                    : 'opacity-0 translate-y-8 -z-10 pointer-events-none duration-500 delay-0'
+                }`}
+                style={{ padding: '36px 44px' }}
               >
-              <div className="mb-8 text-center">
-                <h3 className="text-white text-xl font-serif tracking-wide mb-2">Request a Quote</h3>
-                <p className="text-slate-400 text-sm font-light">Enter your details and we'll reach out to you shortly.</p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-y-7">
-                <div>
-                  <label htmlFor="quote-phone" className="block text-xs uppercase tracking-widest mb-4" style={{ color: '#FFFFFF' }}>
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="quote-phone"
-                    value={quoteForm.phone}
-                    onChange={(e) => setQuoteForm({ phone: e.target.value })}
-                    required
-                    className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
-                    style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
-                  />
-                </div>
-              </div>
-
-              </div>
-
-              <div className="flex justify-center mt-9">
-                <button
-                  type="submit"
-                  disabled={quoteStatus === 'sending'}
-                  className="flex items-center justify-center cursor-pointer transition-opacity duration-300"
-                  style={{
-                    width: 143,
-                    height: 24,
-                    backgroundColor: '#F7F7F7',
-                    borderRadius: 6,
-                    color: '#000000',
-                    fontFamily: 'Inter, sans-serif',
-                    fontWeight: 400,
-                    fontSize: 14,
-                    border: 'none',
-                    opacity: quoteStatus === 'sending' ? 0.8 : 1,
-                  }}
-                >
-                  {quoteStatus === 'sending' ? '' : 'Get a Quote'}
-                </button>
-              </div>
-
-              {quoteStatus === 'success' && (
-                <p className="text-green-400 text-sm font-light mt-6 text-center">
+                <p className="text-white text-center font-light" style={{ fontFamily: 'Inter, sans-serif', fontSize: '18px', lineHeight: '1.5' }}>
                   Thank you! We'll be in touch shortly.
                 </p>
-              )}
-              {quoteStatus === 'error' && (
-                <p className="text-red-400 text-sm font-light mt-6 text-center">
-                  Something went wrong. Please try again later.
-                </p>
-              )}
+              </div>
+
+              <div
+                className={`transition-all ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                  quoteStatus === 'success' 
+                    ? 'pointer-events-none' 
+                    : 'pointer-events-auto'
+                }`}
+              >
+                <div
+                  style={{
+                    pointerEvents: (quoteStatus === 'sending' || quoteStatus === 'success') ? 'none' : 'auto',
+                  }}
+                >
+                  <div
+                    className={`mb-8 text-center transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(quoteStatus === 'sending' || quoteStatus === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                    style={{ transitionDelay: (quoteStatus === 'sending' || quoteStatus === 'success') ? '0ms' : '150ms' }}
+                  >
+                    <h3 className="text-white text-xl font-serif tracking-wide mb-2">Request a Quote</h3>
+                    <p className="text-slate-400 text-sm font-light">Enter your details and we'll reach out to you shortly.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-y-7">
+                    <div
+                      className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(quoteStatus === 'sending' || quoteStatus === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                      style={{ transitionDelay: (quoteStatus === 'sending' || quoteStatus === 'success') ? '50ms' : '200ms' }}
+                    >
+                      <label htmlFor="quote-phone" className="block text-xs uppercase tracking-widest mb-4" style={{ color: '#FFFFFF' }}>
+                        Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        id="quote-phone"
+                        value={quoteForm.phone}
+                        onChange={(e) => setQuoteForm({ phone: e.target.value })}
+                        required
+                        className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
+                        style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div 
+                  className={`flex justify-center mt-9 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${(quoteStatus === 'sending' || quoteStatus === 'success') ? 'opacity-0 -translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+                  style={{ transitionDelay: (quoteStatus === 'sending' || quoteStatus === 'success') ? '100ms' : '250ms' }}
+                >
+                  <button
+                    type="submit"
+                    disabled={quoteStatus === 'sending'}
+                    className="flex items-center justify-center cursor-pointer transition-opacity duration-300"
+                    style={{
+                      width: 143,
+                      height: 24,
+                      backgroundColor: '#F7F7F7',
+                      borderRadius: 6,
+                      color: '#000000',
+                      fontFamily: 'Inter, sans-serif',
+                      fontWeight: 400,
+                      fontSize: 14,
+                      border: 'none',
+                      opacity: quoteStatus === 'sending' ? 0.8 : 1,
+                    }}
+                  >
+                    Get a Quote
+                  </button>
+                </div>
+
+                {quoteStatus === 'error' && (
+                  <p 
+                    className={`text-red-400 text-sm font-light mt-6 text-center transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${quoteStatus === 'error' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
+                  >
+                    Something went wrong. Please try again later.
+                  </p>
+                )}
+              </div>
             </form>
           </div>
         </div>
