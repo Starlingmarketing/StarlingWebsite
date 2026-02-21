@@ -389,7 +389,7 @@ const Booking = () => {
     <div className="animate-fade-in opacity-0 min-h-screen py-12 md:py-24">
       <div className="px-6 md:px-12 max-w-7xl mx-auto">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-slate-50/50 p-8 md:p-12">
+          <div className="bg-slate-100 rounded-[8px] border border-slate-200 p-8 md:p-12">
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
@@ -485,18 +485,20 @@ const Booking = () => {
                 ></textarea>
               </div>
 
-              <button
-                type="submit"
-                disabled={status === 'sending'}
-                aria-busy={status === 'sending'}
-                className={`relative mt-8 px-12 py-4 text-xs uppercase tracking-[0.2em] w-full md:w-auto inline-flex items-center justify-center overflow-hidden ${
-                  status === 'sending'
-                    ? 'bg-slate-200 text-transparent cursor-wait'
-                    : 'bg-slate-900 text-white hover:bg-slate-800'
-                }`}
-              >
-                <span className={status === 'sending' ? 'invisible' : 'visible'}>Send Inquiry</span>
-              </button>
+              <div className="flex justify-center mt-8">
+                <button
+                  type="submit"
+                  disabled={status === 'sending'}
+                  aria-busy={status === 'sending'}
+                  className={`relative px-20 py-4 text-xs uppercase tracking-[0.2em] w-full md:w-3/4 inline-flex items-center justify-center overflow-hidden rounded-[8px] transition-all ${
+                    status === 'sending'
+                      ? 'bg-slate-200 text-transparent cursor-wait'
+                      : 'bg-slate-900 text-white hover:bg-slate-800'
+                  }`}
+                >
+                  <span className={status === 'sending' ? 'invisible' : 'visible'}>Send Inquiry</span>
+                </button>
+              </div>
 
               {status === 'success' && (
                 <p className="text-green-700 text-sm font-light mt-4">
