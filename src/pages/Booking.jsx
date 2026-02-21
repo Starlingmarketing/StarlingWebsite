@@ -68,6 +68,20 @@ const GoogleLogo = () => (
   </svg>
 );
 
+const ReviewSourceLogo = ({ source = 'google' }) => {
+  if (source === 'thumbtack') {
+    return (
+      <img
+        src="https://www.google.com/s2/favicons?domain=thumbtack.com&sz=128"
+        alt="Thumbtack"
+        className="w-5 h-5 object-contain rounded-[3px] opacity-90"
+      />
+    );
+  }
+
+  return <GoogleLogo />;
+};
+
 const avatarColors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#7B1FA2', '#FF6D00'];
 
 const ReviewCard = ({ review, index }) => (
@@ -98,7 +112,7 @@ const ReviewCard = ({ review, index }) => (
         </div>
       </div>
       <div className="flex-shrink-0">
-        <GoogleLogo />
+        <ReviewSourceLogo source={review.source} />
       </div>
     </div>
     <p className="text-slate-700 text-[13px] leading-relaxed mt-3 line-clamp-[7]">
@@ -130,16 +144,46 @@ const shortReviews = [
   { name: 'Benjamin Seltzer', rating: 5, avatar: 'unnamed_21_molof5', text: 'Stellar photography, better people. Incredibly easy to work with- the photos were so special!!! Definitely recommend' },
   { name: 'Emma Gleysteen', rating: 5, avatar: 'unnamed_23_ecrgeg', text: 'Ben was great- arrived early and stayed the entire time. Made sure to get lots of angles and provided us with lots of photos post-editing!' },
   { name: 'Robert Lotreck', rating: 5, text: 'Absolutely incredible with the highest quality of professionalism I could ask for. Definitely will be recommending this for every one of my friends’ wedding photography needs going forward.' },
+  {
+    name: 'Lauren R.',
+    rating: 5,
+    source: 'thumbtack',
+    text: 'Ben was an outstanding wedding photographer - professional, kind, and patient, making our experience with him truly enjoyable. We would highly recommend Ben to any couple seeking a talented and reliable photographer - you won’t be disappointed!',
+  },
   { name: 'Jay Patel', rating: 5, text: 'Top notch. The photos and videos came out amazing. I can\'t thank the team enough for helping show off our business.' },
   { name: 'Yonnie Simon', rating: 5, avatar: 'unnamed_22_uhcazg', text: 'Starling Photo Studios is an excellent team dedicated to providing a high quality photography experience. Would recommend.' },
   { name: 'jordan brown', rating: 5, text: 'working with ben and justin was such a pleasure. 5 stars all around!' },
+  {
+    name: 'Kalvin Thompson',
+    rating: 5,
+    source: 'thumbtack',
+    text: 'Great communication, enthusiastic and unbelievably professional work. We are really happy with our choice to trust starling with our wedding day.',
+  },
   { name: 'Darshan Bhalodia', rating: 5, text: 'Ben is an excellent photographer. The experience to photograph my business was flawless. I really appreciated his professionalism and attention to detail. Highly recommend.' },
   { name: 'Henry Miles', rating: 5, avatar: 'unnamed_20_c1iuwj', text: 'Crispy photos, extremely responsive and professional. Would definitely hire again' },
   { name: 'Gabriel Preston', rating: 5, avatar: 'unnamed_19_brkfrr', text: 'Two of the finest individuals I know personally who live up to the name of starlings :) :)' },
+  {
+    name: 'Tess Elkins',
+    rating: 5,
+    source: 'thumbtack',
+    text: 'Great communication and excellent work product. Everyone involved in the project was very happy with the results.',
+  },
   { name: 'snehal Shetty', rating: 5, text: 'The sweetest, bestest and the most patient photographer in town 😊' },
   { name: 'Ben Singer', rating: 5, text: 'Justin is great! Attentive… collaborative spirit' },
   { name: 'Alex Glass', rating: 5, text: 'Very professional, reliable, and high quality!' },
+  {
+    name: 'Leonard D.',
+    rating: 5,
+    source: 'thumbtack',
+    text: 'This is undoubtedly the best photographer I have had the pleasure to work with. I am completely satisfied with the experience of working together on my event. Thank you. You did an outstanding job.',
+  },
   { name: 'Aidan Guynes', rating: 5, avatar: 'unnamed_18_tz3kms', text: 'Loved working with Starling! Would highly recommend.' },
+  {
+    name: 'Colin Hanna',
+    rating: 5,
+    source: 'thumbtack',
+    text: 'Excellent',
+  },
 ];
 
 const ShortReviewCard = ({ review, index }) => (
@@ -170,7 +214,7 @@ const ShortReviewCard = ({ review, index }) => (
         </div>
       </div>
       <div className="flex-shrink-0">
-        <GoogleLogo />
+        <ReviewSourceLogo source={review.source} />
       </div>
     </div>
     <p className="text-slate-700 text-[13px] leading-relaxed mt-2 line-clamp-5">
@@ -204,7 +248,7 @@ const StarOnlyCard = ({ review, index }) => (
       </div>
     </div>
     <div className="flex-shrink-0">
-      <GoogleLogo />
+      <ReviewSourceLogo source={review.source} />
     </div>
   </div>
 );
