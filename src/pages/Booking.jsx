@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { limitFit } from '@cloudinary/url-gen/actions/resize';
 import emailjs from '@emailjs/browser';
 import { cld } from '../utils/cloudinary';
 
@@ -302,7 +303,39 @@ const usePrefersReducedMotion = () => {
   return prefersReducedMotion;
 };
 
+const useMediaQuery = (query) => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const mediaQueryList = window.matchMedia?.(query);
+    if (!mediaQueryList) return undefined;
+
+    const handleChange = () => setMatches(Boolean(mediaQueryList.matches));
+    handleChange();
+
+    if (mediaQueryList.addEventListener) {
+      mediaQueryList.addEventListener('change', handleChange);
+      return () => mediaQueryList.removeEventListener('change', handleChange);
+    }
+
+    mediaQueryList.addListener(handleChange);
+    return () => mediaQueryList.removeListener(handleChange);
+  }, [query]);
+
+  return matches;
+};
+
 const CINEMATIC_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+const BOOKING_GRID_PHOTO_IDS = [
+  'center_city_ag1h8b',
+  'AF1I7015_2_hp56wr',
+  'AF1I2242-Edit-2_cor6p9',
+  '0007__DSC3049-topaz-denoise-denoise_DxO_vh2j4m',
+  '0006__DSC3027-topaz-denoise-denoise_DxO_tpqmmc',
+  'Molly_Fleming_Select_Edits_-016_yapfgd',
+  'Molly_Fleming_Additional_Edits_-0131_iufins',
+];
 
 const randFloat = (min, max) => min + Math.random() * (max - min);
 const randInt = (min, max) => Math.floor(randFloat(min, max + 1));
@@ -342,6 +375,33 @@ const getReviewBreathMs = () => {
   return randInt(900, 1600);
 };
 
+const buildBookingGridPhotoUrl = (publicId, maxWidth = 560) =>
+  cld.image(publicId).format('auto').quality('auto').resize(limitFit().width(maxWidth)).toURL();
+
+const BOOKING_GRID_PHOTO_URL_MAP = Object.fromEntries(
+  BOOKING_GRID_PHOTO_IDS.map((publicId) => [publicId, buildBookingGridPhotoUrl(publicId)]),
+);
+
+const getPhotoHoldMs = () => {
+  const base = randInt(5200, 7600);
+  const linger = Math.random() < 0.22 ? randInt(900, 2400) : 0;
+  return base + linger;
+};
+
+const getPhotoFadeMs = () => {
+  const r = Math.random();
+  if (r < 0.12) return randInt(780, 980);
+  if (r < 0.82) return randInt(1020, 1350);
+  return randInt(1350, 1650);
+};
+
+const getPhotoBreathMs = () => {
+  const r = Math.random();
+  if (r < 0.72) return randInt(180, 520);
+  if (r < 0.92) return randInt(520, 980);
+  return randInt(980, 1600);
+};
+
 const CinematicReviewCard = ({ review }) => {
   const hasText = Boolean(String(review?.text ?? '').trim());
   const source = review?.source ?? 'google';
@@ -350,7 +410,7 @@ const CinematicReviewCard = ({ review }) => {
   const bodyText = hasText ? review.text : 'Verified 5-star rating.';
 
   return (
-    <div className="flex flex-col h-full p-3.5 rounded-lg border border-slate-200/50">
+    <div className="flex flex-col h-full p-3.5 rounded-[8px] bg-white border border-slate-200/50 shadow-sm">
       <div className="flex items-center justify-between mb-3 flex-shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           {review?.avatar ? (
@@ -392,22 +452,58 @@ const CinematicReviewCard = ({ review }) => {
   );
 };
 
-const SLOT_COUNT_PER_SIDE = 4;
+const CINEMATIC_GRID_EMPTY_CELL_INDICES = new Set([5, 6]);
+const CINEMATIC_GRID_INITIAL_PHOTO_SEEDS = {
+  2: { publicId: BOOKING_GRID_PHOTO_IDS[0], initialDelayMs: 400 },
+  4: { publicId: BOOKING_GRID_PHOTO_IDS[1], initialDelayMs: 900 },
+  9: { publicId: BOOKING_GRID_PHOTO_IDS[5], initialDelayMs: 1300 },
+  11: { publicId: BOOKING_GRID_PHOTO_IDS[3], initialDelayMs: 1700 },
+};
 
-const CinematicReviewSlot = ({ engineRef, slotKey, initialReview, initialDelayMs = 0 }) => {
+const REVIEW_GRID_TOTAL =
+  12 -
+  CINEMATIC_GRID_EMPTY_CELL_INDICES.size -
+  Object.keys(CINEMATIC_GRID_INITIAL_PHOTO_SEEDS).length;
+
+const photoSlotId = (publicId) => `photo:${publicId}`;
+
+const getSlotItemId = (item) => {
+  if (!item) return null;
+  if (item.kind === 'photo') return photoSlotId(item.publicId);
+  return item.review?.__id ?? null;
+};
+
+const CinematicGridSlot = ({
+  engineRef,
+  slotKey,
+  initialItem,
+  initialDelayMs = 0,
+  desiredKind,
+  allowMorph = true,
+}) => {
   const prefersReducedMotion = usePrefersReducedMotion();
   const timeoutRef = useRef(null);
+  const hasMountedRef = useRef(false);
 
-  const reviewARef = useRef(initialReview ?? null);
-  const reviewBRef = useRef(null);
+  const initialKindRef = useRef(initialItem?.kind ?? 'review');
+
+  const itemARef = useRef(initialItem ?? null);
+  const itemBRef = useRef(null);
   const showARef = useRef(true);
 
-  const [reviewA, setReviewA] = useState(reviewARef.current);
-  const [reviewB, setReviewB] = useState(reviewBRef.current);
+  const [itemA, setItemA] = useState(itemARef.current);
+  const [itemB, setItemB] = useState(itemBRef.current);
   const [showA, setShowA] = useState(showARef.current);
-  const [fadeMs, setFadeMs] = useState(() => getReviewFadeMs());
+  const [fadeMs, setFadeMs] = useState(() =>
+    initialItem?.kind === 'photo' ? getPhotoFadeMs() : getReviewFadeMs(),
+  );
 
-  const takeFromBag = useCallback(
+  const getTargetKind = useCallback(() => {
+    if (!allowMorph) return initialKindRef.current;
+    return desiredKind ?? initialKindRef.current;
+  }, [allowMorph, desiredKind]);
+
+  const takeReviewFromBag = useCallback(
     (bagKey, list, avoidIds, { ignoreRecent = false } = {}) => {
       if (!list.length) return null;
 
@@ -448,37 +544,88 @@ const CinematicReviewSlot = ({ engineRef, slotKey, initialReview, initialDelayMs
     [engineRef],
   );
 
-  const pickNextReview = useCallback(() => {
-    const engine = engineRef?.current;
-    const takenIds = new Set(Object.values(engine?.slots ?? {}));
+  const pickNextReview = useCallback(
+    (avoidIds) => {
+      const starsChance = 0.35;
+      const tryStars = cinematicReviewsStarsOnly.length && Math.random() < starsChance;
 
-    const starsChance = 0.35;
-    const tryStars = cinematicReviewsStarsOnly.length && Math.random() < starsChance;
+      const primaryList = tryStars ? cinematicReviewsStarsOnly : cinematicReviewsWithText;
+      const primaryBag = tryStars ? 'starsBag' : 'textBag';
+      const fallbackList = tryStars ? cinematicReviewsWithText : cinematicReviewsStarsOnly;
+      const fallbackBag = tryStars ? 'textBag' : 'starsBag';
 
-    const primaryList = tryStars ? cinematicReviewsStarsOnly : cinematicReviewsWithText;
-    const primaryBag = tryStars ? 'starsBag' : 'textBag';
-    const fallbackList = tryStars ? cinematicReviewsWithText : cinematicReviewsStarsOnly;
-    const fallbackBag = tryStars ? 'textBag' : 'starsBag';
+      return (
+        takeReviewFromBag(primaryBag, primaryList, avoidIds) ??
+        takeReviewFromBag(fallbackBag, fallbackList, avoidIds) ??
+        takeReviewFromBag(primaryBag, primaryList, avoidIds, { ignoreRecent: true }) ??
+        takeReviewFromBag(fallbackBag, fallbackList, avoidIds, { ignoreRecent: true }) ??
+        primaryList.find((r) => r?.__id && !avoidIds?.has?.(r.__id)) ??
+        fallbackList.find((r) => r?.__id && !avoidIds?.has?.(r.__id)) ??
+        primaryList[0] ??
+        fallbackList[0] ??
+        null
+      );
+    },
+    [takeReviewFromBag],
+  );
 
-    return (
-      takeFromBag(primaryBag, primaryList, takenIds) ??
-      takeFromBag(fallbackBag, fallbackList, takenIds) ??
-      takeFromBag(primaryBag, primaryList, takenIds, { ignoreRecent: true }) ??
-      takeFromBag(fallbackBag, fallbackList, takenIds, { ignoreRecent: true }) ??
-      primaryList.find((r) => r?.__id && !takenIds.has(r.__id)) ??
-      fallbackList.find((r) => r?.__id && !takenIds.has(r.__id)) ??
-      primaryList[0] ??
-      fallbackList[0] ??
-      null
-    );
-  }, [engineRef, takeFromBag]);
+  const takePhotoFromBag = useCallback(
+    (avoidIds, { ignoreRecent = false } = {}) => {
+      if (!BOOKING_GRID_PHOTO_IDS.length) return null;
+
+      const engine = engineRef?.current;
+      if (!engine) return null;
+
+      if (!Array.isArray(engine.photoBag)) engine.photoBag = [];
+      if (!Array.isArray(engine.photoRecent)) engine.photoRecent = [];
+
+      if (!engine.photoBag.length) engine.photoBag = createShuffleBag(BOOKING_GRID_PHOTO_IDS.length);
+
+      const rejected = [];
+      const recentIds = engine.photoRecent;
+      const recentLimit = Math.min(12, Math.max(6, BOOKING_GRID_PHOTO_IDS.length));
+      const maxAttempts = Math.max(10, Math.min(BOOKING_GRID_PHOTO_IDS.length, 20));
+
+      for (let attempts = 0; attempts < maxAttempts && engine.photoBag.length; attempts += 1) {
+        const idx = engine.photoBag.pop();
+        const publicId = BOOKING_GRID_PHOTO_IDS[idx];
+        const id = photoSlotId(publicId);
+
+        if (!publicId || (avoidIds?.has?.(id) ?? false) || (!ignoreRecent && recentIds.includes(id))) {
+          rejected.push(idx);
+          continue;
+        }
+
+        if (rejected.length) engine.photoBag.unshift(...rejected);
+
+        recentIds.unshift(id);
+        if (recentIds.length > recentLimit) recentIds.length = recentLimit;
+
+        return publicId;
+      }
+
+      if (rejected.length) engine.photoBag.unshift(...rejected);
+      return null;
+    },
+    [engineRef],
+  );
+
+  const pickNextPhoto = useCallback(
+    (avoidIds) =>
+      takePhotoFromBag(avoidIds) ??
+      takePhotoFromBag(avoidIds, { ignoreRecent: true }) ??
+      BOOKING_GRID_PHOTO_IDS.find((publicId) => publicId && !(avoidIds?.has?.(photoSlotId(publicId)) ?? false)) ??
+      BOOKING_GRID_PHOTO_IDS[0] ??
+      null,
+    [takePhotoFromBag],
+  );
 
   const getLayerStyle = useCallback(
     (isVisible) => ({
       opacity: isVisible ? 1 : 0,
       transitionProperty: 'opacity',
       transitionDuration: `${fadeMs}ms`,
-      transitionTimingFunction: 'ease-in-out',
+      transitionTimingFunction: CINEMATIC_EASE,
       willChange: 'opacity',
     }),
     [fadeMs],
@@ -489,31 +636,50 @@ const CinematicReviewSlot = ({ engineRef, slotKey, initialReview, initialDelayMs
     if (!engine) return undefined;
 
     if (!engine.slots) engine.slots = {};
+
     if (!Array.isArray(engine.textBag)) engine.textBag = [];
     if (!Array.isArray(engine.starsBag)) engine.starsBag = [];
     if (!Array.isArray(engine.recent)) engine.recent = [];
+    if (!Array.isArray(engine.photoBag)) engine.photoBag = [];
+    if (!Array.isArray(engine.photoRecent)) engine.photoRecent = [];
 
-    const id = reviewARef.current?.__id;
+    const id = getSlotItemId(itemARef.current);
     if (id) engine.slots[slotKey] = id;
 
     return () => {
       const currentEngine = engineRef?.current;
-      if (!currentEngine?.slots) return;
-      delete currentEngine.slots[slotKey];
+      if (!currentEngine) return;
+      delete currentEngine.slots?.[slotKey];
     };
   }, [engineRef, slotKey]);
 
   useEffect(() => {
-    if (reviewARef.current?.__id) return;
-    const picked = pickNextReview();
-    if (!picked) return;
-
-    reviewARef.current = picked;
-    setReviewA(picked);
+    if (itemARef.current) return;
 
     const engine = engineRef?.current;
-    if (engine?.slots && picked.__id) engine.slots[slotKey] = picked.__id;
-  }, [engineRef, pickNextReview, slotKey]);
+    if (!engine) return;
+
+    const takenIds = new Set(Object.values(engine.slots ?? {}));
+    const targetKind = getTargetKind();
+    const picked =
+      targetKind === 'photo'
+        ? (() => {
+            const publicId = pickNextPhoto(takenIds);
+            return publicId ? { kind: 'photo', publicId } : null;
+          })()
+        : (() => {
+            const review = pickNextReview(takenIds);
+            return review ? { kind: 'review', review } : null;
+          })();
+
+    if (!picked) return;
+
+    itemARef.current = picked;
+    setItemA(picked);
+
+    const id = getSlotItemId(picked);
+    if (engine?.slots && id) engine.slots[slotKey] = id;
+  }, [engineRef, getTargetKind, pickNextPhoto, pickNextReview, slotKey]);
 
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -525,44 +691,99 @@ const CinematicReviewSlot = ({ engineRef, slotKey, initialReview, initialDelayMs
       timeoutRef.current = null;
     };
 
+    const preloadPhoto = (publicId) => {
+      const src = BOOKING_GRID_PHOTO_URL_MAP[publicId];
+      if (!src) return;
+      const img = new Image();
+      img.src = src;
+    };
+
     const transitionToNext = () => {
       if (cancelled) return;
 
-      const nextReview = pickNextReview();
-      if (!nextReview) return;
+      const engine = engineRef?.current;
+      if (!engine) return;
 
-      const nextFadeMs = getReviewFadeMs();
+      const takenIds = new Set(Object.values(engine.slots ?? {}));
+      const currentItem = showARef.current ? itemARef.current : itemBRef.current;
+      const currentIsPhoto = currentItem?.kind === 'photo';
+      const targetKind = getTargetKind();
+
+      // If we are currently a photo, and the target is still a photo, we shouldn't transition.
+      // (This prevents a cell from morphing photo -> review -> photo on its own)
+      if (currentIsPhoto && targetKind === 'photo') {
+        scheduleNext();
+        return;
+      }
+
+      const effectiveKind = targetKind;
+
+      const nextItem =
+        effectiveKind === 'photo'
+          ? (() => {
+              const publicId = pickNextPhoto(takenIds);
+              return publicId ? { kind: 'photo', publicId } : null;
+            })()
+          : (() => {
+              const review = pickNextReview(takenIds);
+              return review ? { kind: 'review', review } : null;
+            })();
+
+      if (!nextItem) return;
+
+      const nextFadeMs = nextItem.kind === 'photo' ? getPhotoFadeMs() : getReviewFadeMs();
       setFadeMs(nextFadeMs);
 
+      if (nextItem.kind === 'photo') preloadPhoto(nextItem.publicId);
+
       if (showARef.current) {
-        reviewBRef.current = nextReview;
-        setReviewB(nextReview);
+        itemBRef.current = nextItem;
+        setItemB(nextItem);
       } else {
-        reviewARef.current = nextReview;
-        setReviewA(nextReview);
+        itemARef.current = nextItem;
+        setItemA(nextItem);
       }
 
       window.requestAnimationFrame(() => {
         if (cancelled) return;
         showARef.current = !showARef.current;
         setShowA(showARef.current);
-        if (engineRef?.current?.slots && nextReview.__id) {
-          engineRef.current.slots[slotKey] = nextReview.__id;
-        }
 
-        timeoutRef.current = window.setTimeout(scheduleNext, nextFadeMs + getReviewBreathMs());
+        const id = getSlotItemId(nextItem);
+        if (engineRef?.current?.slots && id) engineRef.current.slots[slotKey] = id;
+
+        timeoutRef.current = window.setTimeout(scheduleNext, nextFadeMs + (nextItem.kind === 'photo' ? getPhotoBreathMs() : getReviewBreathMs()));
       });
     };
 
     const scheduleNext = () => {
       if (cancelled || document.hidden) return;
 
-      const currentReview = showARef.current ? reviewARef.current : reviewBRef.current;
-      const holdMs = getReviewHoldMs(currentReview);
+      const currentItem = showARef.current ? itemARef.current : itemBRef.current;
+      const currentIsPhoto = currentItem?.kind === 'photo';
+      const targetKind = getTargetKind();
+
+      let holdMs;
+      if (!currentItem) {
+        holdMs = randInt(300, 1200);
+      } else if (currentIsPhoto && targetKind === 'review') {
+        // Morphing away from photo: do it immediately
+        holdMs = randInt(50, 150);
+      } else if (!currentIsPhoto && targetKind === 'photo') {
+        // Morphing into a photo: do it immediately so the column is never without a photo
+        holdMs = randInt(50, 150);
+      } else if (currentIsPhoto && targetKind === 'photo') {
+        // Stay as a photo indefinitely until the grid tells this cell to become a review
+        holdMs = 1000000;
+      } else {
+        holdMs = getReviewHoldMs(currentItem?.review);
+      }
       timeoutRef.current = window.setTimeout(transitionToNext, holdMs);
     };
 
-    timeoutRef.current = window.setTimeout(scheduleNext, initialDelayMs + randInt(300, 1800));
+    const kickoffDelay = hasMountedRef.current ? randInt(0, 80) : initialDelayMs + randInt(260, 1200);
+    hasMountedRef.current = true;
+    timeoutRef.current = window.setTimeout(scheduleNext, kickoffDelay);
 
     const handleVisibility = () => {
       clear();
@@ -576,36 +797,179 @@ const CinematicReviewSlot = ({ engineRef, slotKey, initialReview, initialDelayMs
       clear();
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [engineRef, initialDelayMs, pickNextReview, prefersReducedMotion, slotKey]);
+  }, [engineRef, getTargetKind, initialDelayMs, pickNextPhoto, pickNextReview, prefersReducedMotion, slotKey]);
+
+  const renderItem = (item) => {
+    if (!item) return null;
+    if (item.kind === 'photo') {
+      const src = BOOKING_GRID_PHOTO_URL_MAP[item.publicId];
+      return (
+        <div className="relative w-full overflow-hidden rounded-[8px] bg-white border border-slate-200/50 shadow-sm aspect-[4/3] lg:aspect-auto lg:h-full">
+          <img
+            src={src}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            draggable="false"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </div>
+      );
+    }
+    return <CinematicReviewCard review={item.review} />;
+  };
 
   return (
     <div className="h-full min-h-0 grid grid-cols-1 grid-rows-1">
       <div className="col-start-1 row-start-1 h-full" style={getLayerStyle(showA)}>
-        {reviewA ? <CinematicReviewCard review={reviewA} /> : null}
+        {renderItem(itemA)}
       </div>
       <div className="col-start-1 row-start-1 h-full" style={getLayerStyle(!showA)}>
-        {reviewB ? <CinematicReviewCard review={reviewB} /> : null}
+        {renderItem(itemB)}
       </div>
     </div>
   );
 };
 
-const CinematicReviewRail = ({ side = 'left', engineRef, initialReviews = [] }) => (
-  <div
-    className="h-full overflow-hidden grid gap-6 py-6"
-    style={{ gridTemplateRows: `repeat(${SLOT_COUNT_PER_SIDE}, minmax(0, 1fr))` }}
-  >
-    {initialReviews.map((review, i) => (
-      <CinematicReviewSlot
-        key={`${side}-${i}`}
-        engineRef={engineRef}
-        slotKey={`${side}-${i}`}
-        initialReview={review}
-        initialDelayMs={i * randInt(600, 1200)}
-      />
-    ))}
-  </div>
-);
+const CinematicReviewGrid = ({ engineRef, initialReviews = [] }) => {
+  const allowMorph = useMediaQuery('(min-width: 1024px)');
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  const [photoRows, setPhotoRows] = useState({
+    0: 1, // cell 4 (row 1)
+    1: 2, // cell 9 (row 2)
+    2: 0, // cell 2 (row 0)
+    3: 2, // cell 11 (row 2)
+  });
+
+  const validRowsByCol = useMemo(
+    () => ({
+      0: [0, 1, 2],
+      1: [0, 2],
+      2: [0, 2],
+      3: [0, 1, 2],
+    }),
+    [],
+  );
+
+  let seededReviewIdx = 0;
+
+  const photoCellByCol = useMemo(
+    () => ({
+      0: photoRows[0] * 4 + 0,
+      1: photoRows[1] * 4 + 1,
+      2: photoRows[2] * 4 + 2,
+      3: photoRows[3] * 4 + 3,
+    }),
+    [photoRows],
+  );
+
+  useEffect(() => {
+    if (!allowMorph) return undefined;
+    if (prefersReducedMotion) return undefined;
+
+    let cancelled = false;
+    let timeoutId = null;
+
+        const schedule = () => {
+      timeoutId = window.setTimeout(() => {
+        if (cancelled) return;
+
+        setPhotoRows((prev) => {
+          // Shuffle columns to pick a random one to change
+          const cols = [0, 1, 2, 3];
+          for (let i = cols.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cols[i], cols[j]] = [cols[j], cols[i]];
+          }
+
+          for (const colToChange of cols) {
+            const validRows = validRowsByCol[colToChange];
+            const currentRow = prev[colToChange];
+
+            // Get rows that are NOT the current row to ensure it changes to a different card
+            let availableRows = validRows.filter((r) => r !== currentRow);
+
+            // Enforce horizontal spacing: don't allow photos to be next to each other in the same row
+            if (colToChange > 0) {
+              availableRows = availableRows.filter((r) => r !== prev[colToChange - 1]);
+            }
+            if (colToChange < 3) {
+              availableRows = availableRows.filter((r) => r !== prev[colToChange + 1]);
+            }
+
+            if (availableRows.length > 0) {
+              // Pick a random new row from the available ones
+              const newRow = availableRows[Math.floor(Math.random() * availableRows.length)];
+              return {
+                ...prev,
+                [colToChange]: newRow,
+              };
+            }
+          }
+
+          return prev;
+        });
+
+        schedule();
+      }, randInt(5000, 8500));
+    };
+
+    schedule();
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, [allowMorph, prefersReducedMotion, validRowsByCol]);
+
+  return (
+    <div className="mx-auto select-none" style={{ maxWidth: 1128 }}>
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-3 lg:h-[563px]"
+        style={{ columnGap: 36, rowGap: 40 }}
+      >
+        {Array.from({ length: 12 }, (_, cellIdx) => {
+          if (CINEMATIC_GRID_EMPTY_CELL_INDICES.has(cellIdx)) {
+            return <div key={`grid-empty-${cellIdx}`} className="hidden lg:block" />;
+          }
+
+          const photoSeed = CINEMATIC_GRID_INITIAL_PHOTO_SEEDS[cellIdx];
+          if (photoSeed) {
+            return (
+              <CinematicGridSlot
+                key={`grid-${cellIdx}`}
+                engineRef={engineRef}
+                slotKey={`grid-${cellIdx}`}
+                initialItem={{ kind: 'photo', publicId: photoSeed.publicId }}
+                initialDelayMs={photoSeed.initialDelayMs}
+                desiredKind={allowMorph ? (photoCellByCol[cellIdx % 4] === cellIdx ? 'photo' : 'review') : undefined}
+                allowMorph={allowMorph}
+              />
+            );
+          }
+
+          const review = initialReviews[seededReviewIdx];
+          const reviewIdx = seededReviewIdx;
+          seededReviewIdx += 1;
+
+          return (
+            <CinematicGridSlot
+              key={`grid-${cellIdx}`}
+              engineRef={engineRef}
+              slotKey={`grid-${cellIdx}`}
+              initialItem={review ? { kind: 'review', review } : undefined}
+              initialDelayMs={reviewIdx * 520}
+              desiredKind={allowMorph ? (photoCellByCol[cellIdx % 4] === cellIdx ? 'photo' : 'review') : undefined}
+              allowMorph={allowMorph}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 const ReviewsGrid = () => {
   const bigRemainder = reviews.length % 3;
@@ -680,25 +1044,25 @@ const Booking = () => {
     message: '',
   });
   const [status, setStatus] = useState('idle');
+  const [showDate, setShowDate] = useState(false);
+  const [showLocation, setShowLocation] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
 
   const railEngineRef = useRef({
     textBag: [],
     starsBag: [],
     recent: [],
+    photoBag: [],
+    photoRecent: [],
+    slotCols: {},
+    photoCooldownUntil: {},
     slots: {},
   });
 
-  const initialRailReviews = useMemo(() => {
+  const initialGridReviews = useMemo(() => {
     const pool = [...cinematicReviewPool];
     shuffleInPlace(pool);
-
-    const total = SLOT_COUNT_PER_SIDE * 2;
-    const picked = pool.slice(0, Math.min(total, pool.length));
-
-    return {
-      left: picked.slice(0, SLOT_COUNT_PER_SIDE),
-      right: picked.slice(SLOT_COUNT_PER_SIDE, SLOT_COUNT_PER_SIDE * 2),
-    };
+    return pool.slice(0, Math.min(REVIEW_GRID_TOTAL, pool.length));
   }, []);
 
   const formatField = (value) => {
@@ -754,152 +1118,220 @@ const Booking = () => {
   };
 
   return (
-    <div className="animate-fade-in opacity-0 min-h-screen py-12 md:py-24">
-      <div className="px-6 md:px-12 max-w-7xl mx-auto">
-        <div className="max-w-2xl mx-auto relative">
-          <div className="hidden xl:block absolute top-0 bottom-0 right-[calc(100%+1.5rem)] 2xl:right-[calc(100%+2.5rem)] w-[17rem] 2xl:w-[19rem] pointer-events-none select-none">
-            <CinematicReviewRail
-              side="left"
+    <div className="animate-fade-in opacity-0 min-h-screen py-12 md:py-24 relative isolate">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 -top-24 z-0 h-[clamp(1800px,220vh,3000px)] lg:h-[clamp(1600px,200vh,2600px)]"
+        style={{
+          background:
+            'radial-gradient(52.85% 52.85% at 49.04% 47.15%, #D0E8FF 0%, #F5F5F7 100%)',
+          WebkitMaskImage:
+            'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 58%, rgba(0,0,0,0.65) 78%, rgba(0,0,0,0) 100%)',
+          maskImage:
+            'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 58%, rgba(0,0,0,0.65) 78%, rgba(0,0,0,0) 100%)',
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+          WebkitMaskSize: '100% 100%',
+          maskSize: '100% 100%',
+        }}
+      />
+
+      <div className="relative z-10">
+        <div className="px-6 md:px-12 max-w-7xl mx-auto lg:grid lg:grid-cols-1">
+          <div className="lg:col-start-1 lg:row-start-1">
+            <CinematicReviewGrid
               engineRef={railEngineRef}
-              initialReviews={initialRailReviews.left}
+              initialReviews={initialGridReviews}
             />
           </div>
 
-          <div className="bg-slate-100 rounded-[8px] border border-slate-200 p-8 md:p-12">
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="text-xs uppercase tracking-widest text-slate-500">
-                    Full Name
+          <div className="mt-10 lg:mt-0 lg:col-start-1 lg:row-start-1 lg:flex lg:items-start lg:justify-center lg:pointer-events-none lg:z-10 lg:pt-[114px]">
+            <div
+              className="mx-auto lg:pointer-events-auto"
+              style={{
+                width: '100%',
+                maxWidth: 608,
+                borderRadius: 22,
+                backgroundColor: '#242424',
+                border: '1px solid #000000',
+                padding: '36px 44px',
+              }}
+            >
+              <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
+                  <div>
+                    <label htmlFor="name" className="block text-xs uppercase tracking-widest mb-5" style={{ color: '#FFFFFF' }}>
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
+                      style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-xs uppercase tracking-widest mb-5" style={{ color: '#FFFFFF' }}>
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
+                      style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-7">
+                  <label htmlFor="phone" className="block text-xs uppercase tracking-widest mb-5" style={{ color: '#FFFFFF' }}>
+                    Phone Number
                   </label>
                   <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
                     onChange={handleChange}
-                    required
-                    className="w-full bg-transparent border-b border-slate-300 py-3 text-slate-900 font-light placeholder-slate-300 focus:outline-none focus:border-slate-900 transition-colors"
-                    placeholder="Jane Doe"
+                    className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
+                    style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
                   />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="email" className="text-xs uppercase tracking-widest text-slate-500">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-transparent border-b border-slate-300 py-3 text-slate-900 font-light placeholder-slate-300 focus:outline-none focus:border-slate-900 transition-colors"
-                    placeholder="hello@example.com"
-                  />
+
+                <div className="flex justify-between mt-7">
+                  <button
+                    type="button"
+                    onClick={() => setShowDate((v) => !v)}
+                    className="text-sm font-light cursor-pointer transition-opacity hover:opacity-70"
+                    style={{ color: '#636363' }}
+                  >
+                    {showDate ? '−' : '+'} event date
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLocation((v) => !v)}
+                    className="text-sm font-light cursor-pointer transition-opacity hover:opacity-70"
+                    style={{ color: '#636363' }}
+                  >
+                    {showLocation ? '−' : '+'} location
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowMessage((v) => !v)}
+                    className="text-sm font-light cursor-pointer transition-opacity hover:opacity-70"
+                    style={{ color: '#636363' }}
+                  >
+                    {showMessage ? '−' : '+'} tell us more
+                  </button>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <label htmlFor="phone" className="text-xs uppercase tracking-widest text-slate-500">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full bg-transparent border-b border-slate-300 py-3 text-slate-900 font-light placeholder-slate-300 focus:outline-none focus:border-slate-900 transition-colors"
-                  placeholder="(555) 123-4567"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <label htmlFor="date" className="text-xs uppercase tracking-widest text-slate-500">
-                    Event Date
-                  </label>
-                  <input
-                    type="date"
-                    id="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-transparent border-b border-slate-300 py-3 text-slate-900 font-light placeholder-slate-300 focus:outline-none focus:border-slate-900 transition-colors"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="location" className="text-xs uppercase tracking-widest text-slate-500">
-                    Location / Venue
-                  </label>
-                  <input
-                    type="text"
-                    id="location"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    className="w-full bg-transparent border-b border-slate-300 py-3 text-slate-900 font-light placeholder-slate-300 focus:outline-none focus:border-slate-900 transition-colors"
-                    placeholder="Lake Como, Italy"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="message" className="text-xs uppercase tracking-widest text-slate-500">
-                  Tell us about your event
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  rows={4}
-                  className="w-full bg-transparent border-b border-slate-300 py-3 text-slate-900 font-light placeholder-slate-300 focus:outline-none focus:border-slate-900 transition-colors resize-none"
-                  placeholder="Share your vision, aesthetic, and what drew you to our work..."
-                ></textarea>
-              </div>
-
-              <div className="flex justify-center mt-8">
-                <button
-                  type="submit"
-                  disabled={status === 'sending'}
-                  aria-busy={status === 'sending'}
-                  className={`relative px-20 py-4 text-xs uppercase tracking-[0.2em] w-full md:w-3/4 inline-flex items-center justify-center overflow-hidden rounded-[8px] transition-all ${
-                    status === 'sending'
-                      ? 'bg-slate-200 text-transparent cursor-wait'
-                      : 'bg-slate-900 text-white hover:bg-slate-800'
-                  }`}
+                <div
+                  className="overflow-hidden transition-all duration-300 ease-in-out"
+                  style={{ maxHeight: showDate ? 100 : 0, opacity: showDate ? 1 : 0 }}
                 >
-                  <span className={status === 'sending' ? 'invisible' : 'visible'}>Send Inquiry</span>
-                </button>
-              </div>
+                  <div className="mt-6">
+                    <label htmlFor="date" className="block text-xs uppercase tracking-widest mb-4" style={{ color: '#FFFFFF' }}>
+                      Event Date
+                    </label>
+                    <input
+                      type="date"
+                      id="date"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none [&::-webkit-calendar-picker-indicator]:invert"
+                      style={{ border: 'none', borderBottom: '1px solid #B7B7B7', colorScheme: 'dark' }}
+                    />
+                  </div>
+                </div>
 
-              {status === 'success' && (
-                <p className="text-green-700 text-sm font-light mt-4">
-                  Thank you for your inquiry — we'll be in touch shortly!
-                </p>
-              )}
-              {status === 'error' && (
-                <p className="text-red-600 text-sm font-light mt-4">
-                  Something went wrong. Please try again or email us directly.
-                </p>
-              )}
-            </form>
-          </div>
+                <div
+                  className="overflow-hidden transition-all duration-300 ease-in-out"
+                  style={{ maxHeight: showLocation ? 100 : 0, opacity: showLocation ? 1 : 0 }}
+                >
+                  <div className="mt-6">
+                    <label htmlFor="location" className="block text-xs uppercase tracking-widest mb-4" style={{ color: '#FFFFFF' }}>
+                      Location / Venue
+                    </label>
+                    <input
+                      type="text"
+                      id="location"
+                      name="location"
+                      value={formData.location}
+                      onChange={handleChange}
+                      className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none"
+                      style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
+                    />
+                  </div>
+                </div>
 
-          <div className="hidden xl:block absolute top-0 bottom-0 left-[calc(100%+1.5rem)] 2xl:left-[calc(100%+2.5rem)] w-[17rem] 2xl:w-[19rem] pointer-events-none select-none">
-            <CinematicReviewRail
-              side="right"
-              engineRef={railEngineRef}
-              initialReviews={initialRailReviews.right}
-            />
+                <div
+                  className="overflow-hidden transition-all duration-300 ease-in-out"
+                  style={{ maxHeight: showMessage ? 160 : 0, opacity: showMessage ? 1 : 0 }}
+                >
+                  <div className="mt-6">
+                    <label htmlFor="message" className="block text-xs uppercase tracking-widest mb-4" style={{ color: '#FFFFFF' }}>
+                      Tell Us More
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      rows={3}
+                      className="w-full bg-transparent py-2 text-sm text-white font-light focus:outline-none resize-none"
+                      style={{ border: 'none', borderBottom: '1px solid #B7B7B7' }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-center mt-9">
+                  <button
+                    type="submit"
+                    disabled={status === 'sending'}
+                    className="flex items-center justify-center cursor-pointer"
+                    style={{
+                      width: 143,
+                      height: 24,
+                      backgroundColor: '#F7F7F7',
+                      borderRadius: 6,
+                      color: '#000000',
+                      fontFamily: 'Inter, sans-serif',
+                      fontWeight: 400,
+                      fontSize: 14,
+                      border: 'none',
+                    }}
+                  >
+                    {status === 'sending' ? '...' : 'Submit'}
+                  </button>
+                </div>
+
+                {status === 'success' && (
+                  <p className="text-green-400 text-sm font-light mt-4 text-center">
+                    Thank you for your inquiry — we'll be in touch shortly!
+                  </p>
+                )}
+                {status === 'error' && (
+                  <p className="text-red-400 text-sm font-light mt-4 text-center">
+                    Something went wrong. Please try again or email us directly.
+                  </p>
+                )}
+              </form>
+            </div>
+
           </div>
         </div>
-      </div>
 
-      <ReviewsGrid />
+        <ReviewsGrid />
+      </div>
     </div>
   );
 };
