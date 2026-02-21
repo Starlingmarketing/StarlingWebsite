@@ -2,30 +2,131 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AdvancedImage } from '@cloudinary/react';
 import { cld } from '../utils/cloudinary';
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
 gsap.registerPlugin(useGSAP);
 
-const Home = () => {
-  // Create a Cloudinary image instance
-  const heroImages = [
-    cld.image('AF1I0729_catszb'),
-    cld.image('2021-12-01_fj6dqk'),
-    cld.image('Image_1_iz7lk8'),
-    cld.image('AF1I1454_vcc77d'),
-    cld.image('3P4A1455_ctp4pj')
-  ];
+const HERO_IMAGE_IDS = [
+  'AF1I0729_catszb',
+  '2021-12-01_fj6dqk',
+  'Image_1_iz7lk8',
+  'AF1I1454_vcc77d',
+  '3P4A1455_ctp4pj',
+];
 
+const WEDDING_1_IMAGE_IDS = [
+  'Molly_Fleming_Additional_Edits_-0001_dcp3mi',
+  'Molly_Fleming_Select_Edits_-023_kesq95',
+  'Molly_Fleming_Select_Edits_-013_madlt2',
+  'Molly_Fleming_Select_Edits_-015_oki1n0',
+  'Molly_Fleming_Additional_Edits_-0192_ghi9rs',
+  'Molly_Fleming_Additional_Edits_-0199_mdyby1',
+  'Molly_Fleming_Select_Edits_-005_dedene',
+  'Molly_Fleming_Additional_Edits_-0149_jbt3yz',
+  'Molly_Fleming_Additional_Edits_-0115_rs0fgh',
+  'Molly_Fleming_Additional_Edits_-0130_cbdtdm',
+  'Molly_Fleming_Select_Edits_-016_yapfgd',
+  'Molly_Fleming_Additional_Edits_-0037_ns4q15',
+];
+
+const WEDDING_2_IMAGE_IDS = [
+  '0006__DSC3027-topaz-denoise-denoise_DxO_tpqmmc',
+  '0007__DSC3049-topaz-denoise-denoise_DxO_vh2j4m',
+  '0010__DSC3081-topaz-denoise-denoise_DxO_rzb2jn',
+  '0009__DSC3078-topaz-denoise-denoise_DxO_jsffaf',
+  '0011__DSC3102-topaz-denoise-denoise_DxO_gisjew',
+  '0008__DSC3059-topaz-denoise-denoise_DxO_mtpjqi',
+  '0005__DSC2794-topaz-denoise-denoise_DxO_sltnnl',
+  '0004__DSC2449-topaz-denoise-denoise_DxO_eo1qcp',
+  '0002__DSC1411-topaz-denoise-denoise_DxO_lmkid4',
+  '0013__DSC3294-topaz-denoise-denoise_DxO_qtfe5a',
+  '0012__DSC3116-topaz-denoise-denoise_DxO_zgyczx',
+  '0015__DSC4440-topaz-denoise-denoise_DxO_diayrl',
+  '0003__DSC1682-topaz-denoise-denoise_DxO_dqeobu',
+  '0001__DSC0749-topaz-denoise-denoise_DxO_rv1pwc',
+  '0014__DSC3296-topaz-denoise-denoise_DxO_sot3ul',
+  '0016__DSC4459-topaz-denoise-denoise_DxO_cjqihn',
+];
+
+const ASSORTED_IMAGE_IDS = [
+  'AF1I2242-Edit-2_cor6p9',
+  'AF1I7015_2_hp56wr',
+  '3P4A3745_otnq3g',
+  'center_city_ag1h8b',
+];
+
+const useSectionMount = (rootMargin = '250px') => {
+  const sectionRef = useRef(null);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    if (shouldRender) return;
+    const node = sectionRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShouldRender(true);
+        observer.disconnect();
+      },
+      { rootMargin }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [shouldRender, rootMargin]);
+
+  return [sectionRef, shouldRender];
+};
+
+const Home = () => {
   const [currentImgIdx, setCurrentImgIdx] = useState(0);
-  const [isManualNav, setIsManualNav] = useState(false);
 
   const intervalRef = useRef(null);
+  const container = useRef(null);
+  const [featuredRef, renderFeatured] = useSectionMount();
+  const [selectedRef, renderSelected] = useSectionMount();
+
+  const heroImages = useMemo(
+    () => HERO_IMAGE_IDS.map((publicId) => cld.image(publicId)),
+    []
+  );
+
+  const wedding2Images = useMemo(() => {
+    if (!renderFeatured) return [];
+    return WEDDING_2_IMAGE_IDS.map((publicId) => ({
+      id: `${publicId}-mh`,
+      cldImg: cld.image(publicId),
+      aspectRatio: 'aspect-[4/3]',
+      className: 'col-span-12 md:col-span-6 lg:col-span-3',
+    }));
+  }, [renderFeatured]);
+
+  const wedding1Images = useMemo(() => {
+    if (!renderFeatured) return [];
+    return WEDDING_1_IMAGE_IDS.map((publicId) => ({
+      id: publicId,
+      cldImg: cld.image(publicId),
+      aspectRatio: 'aspect-[4/3]',
+      className: 'col-span-12 md:col-span-6 lg:col-span-3',
+    }));
+  }, [renderFeatured]);
+
+  const assortedImages = useMemo(() => {
+    if (!renderSelected) return [];
+    return ASSORTED_IMAGE_IDS.map((publicId, i) => ({
+      id: `as-${i + 1}`,
+      cldImg: cld.image(publicId),
+      aspectRatio: 'aspect-[4/3]',
+      className: 'col-span-12 md:col-span-6 lg:col-span-3',
+    }));
+  }, [renderSelected]);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
-      setIsManualNav(false);
       setCurrentImgIdx((prev) => (prev + 1) % heroImages.length);
     }, 12000);
     return () => clearInterval(intervalRef.current);
@@ -33,13 +134,28 @@ const Home = () => {
 
   const goToImage = (idx) => {
     clearInterval(intervalRef.current);
-    setIsManualNav(true);
     setCurrentImgIdx(idx);
     intervalRef.current = setInterval(() => {
-      setIsManualNav(false);
       setCurrentImgIdx((prev) => (prev + 1) % heroImages.length);
     }, 12000);
   };
+
+  useEffect(() => {
+    const nextIdx = (currentImgIdx + 1) % heroImages.length;
+    const preload = () => {
+      const preloadImage = new Image();
+      preloadImage.decoding = 'async';
+      preloadImage.src = heroImages[nextIdx].toURL();
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+      const idleId = window.requestIdleCallback(preload, { timeout: 2000 });
+      return () => window.cancelIdleCallback?.(idleId);
+    }
+
+    const timeoutId = window.setTimeout(preload, 600);
+    return () => window.clearTimeout(timeoutId);
+  }, [currentImgIdx, heroImages]);
 
   const [lightbox, setLightbox] = useState(null);
 
@@ -72,8 +188,6 @@ const Home = () => {
       window.removeEventListener('keydown', handleKey);
     };
   }, [lightbox, closeLightbox, navigateLightbox]);
-
-  const container = useRef(null);
 
   useGSAP(() => {
     const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
@@ -163,63 +277,6 @@ const Home = () => {
       );
   }, { scope: container });
 
-  // Featured gallery layouts
-  const wedding1Images = [
-    'Molly_Fleming_Additional_Edits_-0001_dcp3mi',
-    'Molly_Fleming_Select_Edits_-023_kesq95',
-    'Molly_Fleming_Select_Edits_-013_madlt2',
-    'Molly_Fleming_Select_Edits_-015_oki1n0',
-    'Molly_Fleming_Additional_Edits_-0192_ghi9rs',
-    'Molly_Fleming_Additional_Edits_-0199_mdyby1',
-    'Molly_Fleming_Select_Edits_-005_dedene',
-    'Molly_Fleming_Additional_Edits_-0149_jbt3yz',
-    'Molly_Fleming_Additional_Edits_-0115_rs0fgh',
-    'Molly_Fleming_Additional_Edits_-0130_cbdtdm',
-    'Molly_Fleming_Select_Edits_-016_yapfgd',
-    'Molly_Fleming_Additional_Edits_-0037_ns4q15',
-  ].map((publicId) => ({
-    id: publicId,
-    cldImg: cld.image(publicId),
-    aspectRatio: 'aspect-[4/3]',
-    className: 'col-span-12 md:col-span-6 lg:col-span-3',
-  }));
-
-  const wedding2Images = [
-    '0006__DSC3027-topaz-denoise-denoise_DxO_tpqmmc',
-    '0007__DSC3049-topaz-denoise-denoise_DxO_vh2j4m',
-    '0010__DSC3081-topaz-denoise-denoise_DxO_rzb2jn',
-    '0009__DSC3078-topaz-denoise-denoise_DxO_jsffaf',
-    '0011__DSC3102-topaz-denoise-denoise_DxO_gisjew',
-    '0008__DSC3059-topaz-denoise-denoise_DxO_mtpjqi',
-    '0005__DSC2794-topaz-denoise-denoise_DxO_sltnnl',
-    '0004__DSC2449-topaz-denoise-denoise_DxO_eo1qcp',
-    '0002__DSC1411-topaz-denoise-denoise_DxO_lmkid4',
-    '0013__DSC3294-topaz-denoise-denoise_DxO_qtfe5a',
-    '0012__DSC3116-topaz-denoise-denoise_DxO_zgyczx',
-    '0015__DSC4440-topaz-denoise-denoise_DxO_diayrl',
-    '0003__DSC1682-topaz-denoise-denoise_DxO_dqeobu',
-    '0001__DSC0749-topaz-denoise-denoise_DxO_rv1pwc',
-    '0014__DSC3296-topaz-denoise-denoise_DxO_sot3ul',
-    '0016__DSC4459-topaz-denoise-denoise_DxO_cjqihn',
-  ].map((publicId) => ({
-    id: publicId + '-mh', // unique id for Makayla and Hunter
-    cldImg: cld.image(publicId),
-    aspectRatio: 'aspect-[4/3]',
-    className: 'col-span-12 md:col-span-6 lg:col-span-3',
-  }));
-
-  const assortedImages = [
-    'AF1I2242-Edit-2_cor6p9',
-    'AF1I7015_2_hp56wr',
-    '3P4A3745_otnq3g',
-    'center_city_ag1h8b'
-  ].map((publicId, i) => ({
-    id: `as-${i + 1}`,
-    cldImg: cld.image(publicId),
-    aspectRatio: 'aspect-[4/3]',
-    className: 'col-span-12 md:col-span-6 lg:col-span-3',
-  }));
-
   return (
     <div ref={container} className="w-full">
       {/* Hero Section - Framed Premium Layout */}
@@ -284,22 +341,15 @@ const Home = () => {
           {/* Image Container */}
           <div className="w-full lg:w-6/12 order-1 lg:order-2 h-[40vh] lg:h-[50vh] py-4 lg:py-6 flex items-center justify-center relative group">
             <div className="hero-img-wrapper relative w-full h-full overflow-hidden bg-transparent flex items-center justify-center">
-              {heroImages.map((img, idx) => (
-                <div 
-                  key={idx}
-                  className={`absolute inset-0 w-full h-full transition-opacity ${
-                    isManualNav ? 'duration-300 ease-out' : 'duration-1000 ease-in-out'
-                  } ${
-                    idx === currentImgIdx ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                  }`}
-                >
-                  <AdvancedImage 
-                    cldImg={img} 
-                    className="hero-img w-full h-full object-contain" 
-                    alt={`Starling Photography Cover ${idx + 1}`}
-                  />
-                </div>
-              ))}
+              <AdvancedImage
+                key={currentImgIdx}
+                cldImg={heroImages[currentImgIdx]}
+                className="hero-img w-full h-full object-contain animate-fade-in"
+                alt={`Starling Photography Cover ${currentImgIdx + 1}`}
+                loading={currentImgIdx === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                fetchPriority={currentImgIdx === 0 ? 'high' : 'auto'}
+              />
             </div>
             <div className="hero-dots absolute bottom-0 left-0 right-0 z-20 flex items-center justify-center gap-2.5 opacity-0 pointer-events-none transition-opacity duration-300 ease-out group-hover:opacity-100 focus-within:opacity-100">
               {heroImages.map((_, idx) => (
@@ -332,83 +382,91 @@ const Home = () => {
       </section>
 
       {/* Featured Galleries / Recent Work */}
-      <section className="px-6 md:px-12 max-w-7xl mx-auto py-12 border-t border-slate-100 min-h-[50vh]">
+      <section ref={featuredRef} className="px-6 md:px-12 max-w-7xl mx-auto py-12 border-t border-slate-100 min-h-[50vh]">
         <div className="flex justify-between items-end mb-8">
           {/* <h2 className="text-2xl font-light tracking-wide text-slate-900">Recent Stories</h2> */}
         </div>
-        
-        <div className="space-y-20">
-          {/* Gallery 2 - Makayla and Hunter */}
-          <div>
-            <div className="mb-8 flex flex-col items-center text-center">
-              <h3 className="text-3xl font-serif text-slate-900 mb-3">Makayla and Hunter</h3>
-              <p className="text-sm text-slate-400 font-serif uppercase tracking-widest">Glasbern - A Historic Hotel of America • Summer 2025</p>
-            </div>
-            <div className="grid grid-cols-12 gap-4 md:gap-8 items-start">
-              {wedding2Images.map((img, i) => (
-                <div key={img.id} className={`group cursor-pointer overflow-hidden rounded-[8px] ${img.className}`} onClick={() => openLightbox(wedding2Images, i)}>
-                  <div className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[8px] shadow-xl shadow-slate-200/50`}>
-                    <AdvancedImage
-                      cldImg={img.cldImg}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2000ms] ease-out"
-                      alt={`Makayla and Hunter photo ${i + 1}`}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Gallery 1 */}
-          <div>
-            <div className="mb-8 flex flex-col items-center text-center">
-              <h3 className="text-3xl font-serif text-slate-900 mb-3">Molly and Brandon</h3>
-              <p className="text-sm text-slate-400 font-serif uppercase tracking-widest">Green Lane, Pennsylvania • Summer 2025</p>
-            </div>
-            <div className="grid grid-cols-12 gap-4 md:gap-8 items-start">
-              {wedding1Images.map((img, i) => (
-                <div key={img.id} className={`group cursor-pointer overflow-hidden rounded-[8px] ${img.className}`} onClick={() => openLightbox(wedding1Images, i)}>
-                  <div className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[8px] shadow-xl shadow-slate-200/50`}>
-                    <AdvancedImage
-                      cldImg={img.cldImg}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2000ms] ease-out"
-                      alt={`Molly and Brandon photo ${i + 1}`}
-                      loading="lazy"
-                      decoding="async"
-                    />
+        {renderFeatured ? (
+          <div className="space-y-20">
+            {/* Gallery 2 - Makayla and Hunter */}
+            <div>
+              <div className="mb-8 flex flex-col items-center text-center">
+                <h3 className="text-3xl font-serif text-slate-900 mb-3">Makayla and Hunter</h3>
+                <p className="text-sm text-slate-400 font-serif uppercase tracking-widest">Glasbern - A Historic Hotel of America • Summer 2025</p>
+              </div>
+              <div className="grid grid-cols-12 gap-4 md:gap-8 items-start">
+                {wedding2Images.map((img, i) => (
+                  <div key={img.id} className={`group cursor-pointer overflow-hidden rounded-[8px] ${img.className}`} onClick={() => openLightbox(wedding2Images, i)}>
+                    <div className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[8px] shadow-xl shadow-slate-200/50`}>
+                      <AdvancedImage
+                        cldImg={img.cldImg}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2000ms] ease-out"
+                        alt={`Makayla and Hunter photo ${i + 1}`}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            {/* Gallery 1 */}
+            <div>
+              <div className="mb-8 flex flex-col items-center text-center">
+                <h3 className="text-3xl font-serif text-slate-900 mb-3">Molly and Brandon</h3>
+                <p className="text-sm text-slate-400 font-serif uppercase tracking-widest">Green Lane, Pennsylvania • Summer 2025</p>
+              </div>
+              <div className="grid grid-cols-12 gap-4 md:gap-8 items-start">
+                {wedding1Images.map((img, i) => (
+                  <div key={img.id} className={`group cursor-pointer overflow-hidden rounded-[8px] ${img.className}`} onClick={() => openLightbox(wedding1Images, i)}>
+                    <div className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[8px] shadow-xl shadow-slate-200/50`}>
+                      <AdvancedImage
+                        cldImg={img.cldImg}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2000ms] ease-out"
+                        alt={`Molly and Brandon photo ${i + 1}`}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="h-[40vh] md:h-[45vh]" aria-hidden="true" />
+        )}
       </section>
 
       {/* Assorted / Selected Work */}
-      <section className="px-6 md:px-12 max-w-7xl mx-auto pt-4 pb-20">
+      <section ref={selectedRef} className="px-6 md:px-12 max-w-7xl mx-auto pt-4 pb-20">
         <div className="flex items-center gap-6 mb-10">
           <div className="flex-1 h-px bg-slate-200" />
           <h2 className="text-[11px] uppercase tracking-[0.3em] text-slate-400 font-light whitespace-nowrap">Selected Work</h2>
           <div className="flex-1 h-px bg-slate-200" />
         </div>
 
-        <div className="grid grid-cols-12 gap-4 md:gap-8 items-start">
-          {assortedImages.map((img, i) => (
-            <div key={img.id} className={`group cursor-pointer overflow-hidden rounded-[8px] ${img.className}`} onClick={() => openLightbox(assortedImages, i)}>
-              <div className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[8px] shadow-xl shadow-slate-200/50`}>
-                <AdvancedImage
-                  cldImg={img.cldImg}
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2000ms] ease-out"
-                  alt={`Selected Work photo ${i + 1}`}
-                  loading="lazy"
-                  decoding="async"
-                />
+        {renderSelected ? (
+          <div className="grid grid-cols-12 gap-4 md:gap-8 items-start">
+            {assortedImages.map((img, i) => (
+              <div key={img.id} className={`group cursor-pointer overflow-hidden rounded-[8px] ${img.className}`} onClick={() => openLightbox(assortedImages, i)}>
+                <div className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[8px] shadow-xl shadow-slate-200/50`}>
+                  <AdvancedImage
+                    cldImg={img.cldImg}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2000ms] ease-out"
+                    alt={`Selected Work photo ${i + 1}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="h-[22vh] md:h-[28vh]" aria-hidden="true" />
+        )}
 
         <div className="flex justify-center mt-12 mb-4">
           <Link
