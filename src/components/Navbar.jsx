@@ -152,15 +152,43 @@ const Navbar = () => {
     <>
       {/* Mobile backdrop (so the menu feels attached to nav) */}
       <div
-        className={`fixed inset-0 z-40 md:hidden transition-[background-color,backdrop-filter] duration-[280ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
-          isOpen
-            ? 'pointer-events-auto bg-black/[0.14] backdrop-blur-[6px]'
-            : 'pointer-events-none bg-black/0 backdrop-blur-[0px]'
-        }`}
+        className={`fixed inset-0 z-40 md:hidden ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
         aria-hidden={!isOpen}
         onClick={() => setIsOpen(false)}
-        style={{ willChange: 'background-color, backdrop-filter' }}
-      />
+      >
+        <div
+          aria-hidden="true"
+          className={`absolute inset-0 pointer-events-none transform-gpu ${
+            isOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{
+            willChange: 'opacity, backdrop-filter, -webkit-backdrop-filter',
+            backgroundColor: 'rgba(2,6,23,0.001)',
+            backdropFilter: 'blur(14px) saturate(1.15)',
+            WebkitBackdropFilter: 'blur(14px) saturate(1.15)',
+          }}
+        />
+
+        <div
+          aria-hidden="true"
+          className={`absolute inset-0 pointer-events-none transform-gpu transition-opacity duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
+            isOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{
+            willChange: 'opacity',
+            backgroundColor: 'rgba(2,6,23,0.15)',
+          }}
+        >
+          <div
+            aria-hidden="true"
+            className="absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(1200px circle at 20% -10%, rgba(255,255,255,0.05), transparent 55%), radial-gradient(1000px circle at 80% 110%, rgba(255,255,255,0.03), transparent 60%)',
+            }}
+          />
+        </div>
+      </div>
 
       <nav
         ref={navRef}
@@ -180,39 +208,27 @@ const Navbar = () => {
 
         {/* Liquid glass overlay when menu is open */}
         <div
-          className={`absolute inset-0 pointer-events-none rounded-[22px] transition-opacity duration-[280ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
+          className={`absolute inset-0 pointer-events-none rounded-[22px] transition-opacity duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
             isOpen ? 'opacity-100' : 'opacity-0'
           }`}
           style={{
-            backdropFilter: 'blur(56px) saturate(1.8) brightness(0.88)',
-            WebkitBackdropFilter: 'blur(56px) saturate(1.8) brightness(0.88)',
+            willChange: 'opacity',
+            backgroundColor: 'rgba(2,6,23,0.35)',
           }}
         >
           <div
             className="absolute inset-0 rounded-[22px]"
             style={{
-              background: 'linear-gradient(165deg, rgba(10,14,28,0.24) 0%, rgba(14,22,40,0.12) 50%, rgba(10,14,28,0.22) 100%)',
+              background:
+                'linear-gradient(178deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 38%, transparent 62%)',
             }}
           />
+          <div className="absolute top-0 inset-x-[6%] h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
           <div
             className="absolute inset-0 rounded-[22px]"
             style={{
-              background: 'linear-gradient(178deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 30%, transparent 50%)',
-            }}
-          />
-          <div className="absolute top-0 inset-x-[6%] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-          <div
-            className="absolute inset-0 rounded-[22px]"
-            style={{
-              boxShadow: 'inset 0 1px 0.5px rgba(255,255,255,0.16), inset 0 -0.5px 0.5px rgba(255,255,255,0.04)',
-            }}
-          />
-          <div className="absolute inset-0 rounded-[22px]" style={{ background: 'radial-gradient(ellipse 70% 35% at 50% 0%, rgba(255,255,255,0.06), transparent)' }} />
-          <div
-            className="absolute inset-0 rounded-[22px] opacity-[0.02] mix-blend-overlay"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-              backgroundSize: '128px 128px',
+              boxShadow:
+                'inset 0 1px 0.5px rgba(255,255,255,0.12), inset 0 -0.5px 0.5px rgba(255,255,255,0.04)',
             }}
           />
         </div>
@@ -294,7 +310,7 @@ const Navbar = () => {
             style={{ willChange: 'height' }}
           >
             <div
-              className={`h-full px-6 pb-6 pt-3 flex flex-col transform-gpu transition-[opacity,transform] duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
+              className={`h-full pb-4 pt-3 flex flex-col transform-gpu transition-[opacity,transform] duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
                 isOpen ? 'opacity-100 translate-y-0 delay-100' : 'opacity-0 -translate-y-2 delay-0'
               }`}
               style={{ willChange: 'opacity, transform' }}
@@ -304,8 +320,8 @@ const Navbar = () => {
 
               {/* Links */}
               <div className="flex-1 flex flex-col justify-center py-5">
-                <div className="flex flex-col gap-[clamp(22px,3.2vh,34px)]">
-                  {navLinks.map((link) => (
+                <div className="flex flex-col gap-[var(--starling-mobile-nav-link-gap)]">
+                  {navLinks.map((link, idx) => (
                     <Link
                       key={link.name}
                       to={link.path}
@@ -318,7 +334,8 @@ const Navbar = () => {
                         }
                         setIsOpen(false);
                       }}
-                      className={`font-inter text-[clamp(26px,7vw,32px)] leading-[1.12] font-medium tracking-tight transition-colors duration-200 ${
+                      style={{ '--starling-mobile-nav-item-delay': `${idx * 90}ms` }}
+                      className={`starling-mobile-nav-link font-inter text-[clamp(22px,5.5vw,26px)] leading-[1.12] font-medium tracking-tight transition-colors duration-200 ${
                         activePath === link.path ? 'text-white' : 'text-white/70 hover:text-white'
                       }`}
                     >

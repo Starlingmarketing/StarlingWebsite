@@ -32,6 +32,36 @@
 .delay-200 { animation-delay: 200ms; }
 .delay-300 { animation-delay: 300ms; }
 
+@keyframes starlingMobileNavItemIn {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@media (max-width: 767px) {
+  nav[data-menu-open] .starling-mobile-nav-link {
+    will-change: opacity, transform;
+    animation: starlingMobileNavItemIn 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(300ms + var(--starling-mobile-nav-item-delay, 0ms));
+  }
+
+  nav[data-menu-tinting] {
+    transition: background-color 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+                backdrop-filter 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+                -webkit-backdrop-filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  nav[data-menu-tinting] [data-nav-bg] {
+    transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  nav[data-menu-open] .starling-mobile-nav-link {
+    animation: none !important;
+  }
+}
+
 @keyframes stackCardIn {
   from { opacity: 0; transform: scale(0.985); }
   to   { opacity: 1; transform: scale(1); }
@@ -121,11 +151,13 @@ nav[data-menu-open] [data-nav-bg] {
 }
 
 :root {
-  --starling-mobile-nav-menu-h: clamp(240px, 34vh, 380px);
+  --starling-mobile-nav-menu-h: clamp(210px, 30vh, 320px);
+  --starling-mobile-nav-link-gap: clamp(26px, 3.8vh, 40px);
 }
 
 @supports (height: 1svh) {
   :root {
-    --starling-mobile-nav-menu-h: clamp(240px, 34svh, 380px);
+    --starling-mobile-nav-menu-h: clamp(210px, 30svh, 320px);
+    --starling-mobile-nav-link-gap: clamp(26px, 3.8svh, 40px);
   }
 }
