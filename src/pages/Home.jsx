@@ -9,6 +9,7 @@ import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import emailjs from '@emailjs/browser';
 import ScrollBookingReveal from '../components/ScrollBookingReveal';
+import { animate, createTimeline } from 'animejs';
 import { ReviewsGrid } from './Booking';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -66,6 +67,7 @@ const STACK_OFFSET_X = 56;
 const STACK_OFFSET_Y = 38;
 const STACK_COUNT = 3;
 const CARD_SHADOWS = ['none', 'none', 'none'];
+const LIGHTBOX_RADIUS_PX = 8;
 
 const buildOptimizedImage = (publicId, maxWidth) => {
   const img = cld.image(publicId).format('auto').quality('auto');
@@ -401,25 +403,192 @@ const Home = () => {
   }, [visibleSet, heroImages]);
 
   const [lightbox, setLightbox] = useState(null);
+  const lightboxSourceRef = useRef(null);
+  const lightboxImageWrapRef = useRef(null);
+  const lightboxImageInnerRef = useRef(null);
+  const lightboxBackdropRef = useRef(null);
+  const lightboxControlsRef = useRef(null);
+  const lightboxPhaseRef = useRef('idle');
+  const lightboxOpenIdRef = useRef(null);
+  const prevLightboxIndexRef = useRef(null);
+  const navAnimRef = useRef(null);
 
-  const openLightbox = useCallback((images, index) => {
-    setLightbox({ images, index });
+  const openLightbox = useCallback((images, index, e) => {
+    if (lightboxPhaseRef.current !== 'idle') return;
+    const outer = e.currentTarget;
+    const inner = outer.querySelector('[data-gallery-card-inner]') || outer;
+    lightboxSourceRef.current = inner;
+
+    // Reset any hover-scale state so close lands seamlessly.
+    outer.style.zIndex = '';
+    gsap.killTweensOf(inner);
+    gsap.set(inner, { scale: 1 });
+
+    lightboxPhaseRef.current = 'opening';
+    const openId = Date.now();
+    lightboxOpenIdRef.current = openId;
+    prevLightboxIndexRef.current = index;
+    setLightbox({ images, index, openId });
   }, []);
 
   const closeLightbox = useCallback(() => {
-    setLightbox(null);
+    if (lightboxPhaseRef.current !== 'open') return;
+    lightboxPhaseRef.current = 'closing';
+
+    if (navAnimRef.current) {
+      navAnimRef.current.revert();
+      navAnimRef.current = null;
+    }
+
+    const imageWrap = lightboxImageWrapRef.current;
+    const imageInner = lightboxImageInnerRef.current;
+    const backdrop = lightboxBackdropRef.current;
+    const controls = lightboxControlsRef.current;
+    const sourceEl = lightboxSourceRef.current;
+
+    if (!imageWrap || !backdrop) {
+      setLightbox(null);
+      lightboxPhaseRef.current = 'idle';
+      return;
+    }
+
+    imageWrap.style.opacity = '1';
+    imageWrap.style.borderRadius = `${LIGHTBOX_RADIUS_PX}px / ${LIGHTBOX_RADIUS_PX}px`;
+    imageWrap.style.willChange = 'transform, border-radius';
+    if (imageInner) imageInner.style.willChange = 'transform';
+
+    document.documentElement.setAttribute('data-lightbox-restoring', '');
+    document.documentElement.removeAttribute('data-lightbox-open');
+    const restoreTimer = setTimeout(() => {
+      document.documentElement.removeAttribute('data-lightbox-restoring');
+    }, 1100);
+
+    const sourceRect = sourceEl?.getBoundingClientRect();
+    const currentRect = imageWrap.getBoundingClientRect();
+
+    const tl = createTimeline({
+      onComplete: () => {
+        clearTimeout(restoreTimer);
+        document.documentElement.removeAttribute('data-lightbox-restoring');
+        imageWrap.style.willChange = '';
+        if (imageInner) imageInner.style.willChange = '';
+        setLightbox(null);
+        lightboxPhaseRef.current = 'idle';
+      },
+    });
+
+    if (controls) {
+      tl.add(controls, { opacity: [1, 0], duration: 240, ease: 'outCubic' }, 0);
+    }
+
+    if (sourceRect && sourceRect.width > 0 && currentRect.width > 0) {
+      const deltaX =
+        sourceRect.left + sourceRect.width / 2 - (currentRect.left + currentRect.width / 2);
+      const deltaY =
+        sourceRect.top + sourceRect.height / 2 - (currentRect.top + currentRect.height / 2);
+      const scaleX = sourceRect.width / currentRect.width;
+      const scaleY = sourceRect.height / currentRect.height;
+      const coverScale = Math.max(scaleX, scaleY);
+      const innerScaleX = coverScale / scaleX;
+      const innerScaleY = coverScale / scaleY;
+      const radiusTo = `${(LIGHTBOX_RADIUS_PX / scaleX).toFixed(3)}px / ${(
+        LIGHTBOX_RADIUS_PX / scaleY
+      ).toFixed(3)}px`;
+
+      tl.add(
+        imageWrap,
+        {
+          translateX: [0, deltaX],
+          translateY: [0, deltaY],
+          scaleX: [1, scaleX],
+          scaleY: [1, scaleY],
+          borderRadius: [`${LIGHTBOX_RADIUS_PX}px / ${LIGHTBOX_RADIUS_PX}px`, radiusTo],
+          duration: 980,
+          ease: 'inOutCubic',
+        },
+        0,
+      );
+
+      if (imageInner) {
+        tl.add(
+          imageInner,
+          {
+            scaleX: [1, innerScaleX],
+            scaleY: [1, innerScaleY],
+            duration: 980,
+            ease: 'inOutCubic',
+          },
+          0,
+        );
+      }
+
+      tl.add(
+        backdrop,
+        {
+          opacity: [1, 0],
+          duration: 900,
+          ease: 'inOutCubic',
+        },
+        80,
+      );
+    } else {
+      tl.add(imageWrap, {
+        opacity: [1, 0],
+        scale: [1, 0.94],
+        duration: 620,
+        ease: 'inOutCubic',
+      }, 0);
+      tl.add(backdrop, {
+        opacity: [1, 0],
+        duration: 620,
+        ease: 'inOutCubic',
+      }, 0);
+    }
   }, []);
 
   const navigateLightbox = useCallback((dir) => {
+    if (lightboxPhaseRef.current !== 'open') return;
     setLightbox(prev => {
       if (!prev) return null;
-      return { ...prev, index: (prev.index + dir + prev.images.length) % prev.images.length };
+      const newIndex = (prev.index + dir + prev.images.length) % prev.images.length;
+      return { ...prev, index: newIndex };
+    });
+  }, []);
+
+  const handleCardEnter = useCallback((e) => {
+    const outer = e.currentTarget;
+    const inner =
+      outer?.querySelector?.('[data-gallery-card-inner="true"]') ?? outer;
+
+    outer.style.zIndex = '10';
+    gsap.to(inner, {
+      scale: 1.025,
+      duration: 0.5,
+      ease: 'power2.out',
+      overwrite: 'auto',
+    });
+  }, []);
+
+  const handleCardLeave = useCallback((e) => {
+    const outer = e.currentTarget;
+    const inner =
+      outer?.querySelector?.('[data-gallery-card-inner="true"]') ?? outer;
+
+    gsap.to(inner, {
+      scale: 1,
+      duration: 0.3,
+      ease: 'power2.inOut',
+      overwrite: 'auto',
+      onComplete: () => {
+        outer.style.zIndex = '';
+      },
     });
   }, []);
 
   useEffect(() => {
     if (!lightbox) return;
-    document.body.style.overflow = 'hidden';
+    document.documentElement.removeAttribute('data-lightbox-restoring');
+    document.documentElement.setAttribute('data-lightbox-open', '');
     const handleKey = (e) => {
       if (e.key === 'Escape') closeLightbox();
       if (e.key === 'ArrowRight') navigateLightbox(1);
@@ -427,10 +596,138 @@ const Home = () => {
     };
     window.addEventListener('keydown', handleKey);
     return () => {
-      document.body.style.overflow = '';
+      document.documentElement.removeAttribute('data-lightbox-open');
+      document.documentElement.removeAttribute('data-lightbox-restoring');
       window.removeEventListener('keydown', handleKey);
     };
   }, [lightbox, closeLightbox, navigateLightbox]);
+
+  useEffect(() => {
+    if (!lightbox || lightboxPhaseRef.current !== 'opening') return;
+
+    const runFlip = () => {
+      const imageWrap = lightboxImageWrapRef.current;
+      const imageInner = lightboxImageInnerRef.current;
+      const backdrop = lightboxBackdropRef.current;
+      const controls = lightboxControlsRef.current;
+      const sourceEl = lightboxSourceRef.current;
+
+      if (!imageWrap || !backdrop) {
+        lightboxPhaseRef.current = 'open';
+        return;
+      }
+
+      backdrop.style.opacity = '0';
+      if (controls) controls.style.opacity = '0';
+
+      const sourceRect = sourceEl?.getBoundingClientRect();
+      const finalRect = imageWrap.getBoundingClientRect();
+
+      if (!sourceRect || finalRect.width === 0 || finalRect.height === 0) {
+        imageWrap.style.opacity = '0';
+        if (imageInner) imageInner.style.transform = '';
+        const tl = createTimeline({
+          onComplete: () => { lightboxPhaseRef.current = 'open'; },
+        });
+        tl.add(backdrop, { opacity: [0, 1], duration: 820, ease: 'outCubic' }, 0);
+        tl.add(imageWrap, { opacity: [0, 1], scale: [0.94, 1], duration: 980, ease: 'outQuint' }, 0);
+        if (controls) tl.add(controls, { opacity: [0, 1], duration: 520, ease: 'outCubic' }, 420);
+        return;
+      }
+
+      const deltaX = sourceRect.left + sourceRect.width / 2 - (finalRect.left + finalRect.width / 2);
+      const deltaY = sourceRect.top + sourceRect.height / 2 - (finalRect.top + finalRect.height / 2);
+      const scaleX = sourceRect.width / finalRect.width;
+      const scaleY = sourceRect.height / finalRect.height;
+      const coverScale = Math.max(scaleX, scaleY);
+      const innerScaleX = coverScale / scaleX;
+      const innerScaleY = coverScale / scaleY;
+      const radiusFrom = `${(LIGHTBOX_RADIUS_PX / scaleX).toFixed(3)}px / ${(
+        LIGHTBOX_RADIUS_PX / scaleY
+      ).toFixed(3)}px`;
+
+      imageWrap.style.transform = `translateX(${deltaX}px) translateY(${deltaY}px) scaleX(${scaleX}) scaleY(${scaleY})`;
+      imageWrap.style.borderRadius = radiusFrom;
+      if (imageInner) {
+        imageInner.style.transform = `scaleX(${innerScaleX}) scaleY(${innerScaleY})`;
+      }
+      imageWrap.style.opacity = '1';
+      imageWrap.style.willChange = 'transform, border-radius';
+      if (imageInner) imageInner.style.willChange = 'transform';
+
+      const tl = createTimeline({
+        onComplete: () => {
+          imageWrap.style.willChange = '';
+          if (imageInner) imageInner.style.willChange = '';
+          lightboxPhaseRef.current = 'open';
+        },
+      });
+
+      tl.add(backdrop, {
+        opacity: [0, 1],
+        duration: 820,
+        ease: 'outCubic',
+      }, 0);
+
+      tl.add(imageWrap, {
+        translateX: [deltaX, 0],
+        translateY: [deltaY, 0],
+        scaleX: [scaleX, 1],
+        scaleY: [scaleY, 1],
+        borderRadius: [radiusFrom, `${LIGHTBOX_RADIUS_PX}px / ${LIGHTBOX_RADIUS_PX}px`],
+        duration: 1050,
+        ease: 'outQuint',
+      }, 0);
+
+      if (imageInner) {
+        tl.add(imageInner, {
+          scaleX: [innerScaleX, 1],
+          scaleY: [innerScaleY, 1],
+          duration: 1050,
+          ease: 'outQuint',
+        }, 0);
+      }
+
+      if (controls) {
+        tl.add(controls, {
+          opacity: [0, 1],
+          duration: 520,
+          ease: 'outCubic',
+        }, 480);
+      }
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(runFlip));
+  }, [lightbox?.openId]);
+
+  useEffect(() => {
+    if (!lightbox) {
+      prevLightboxIndexRef.current = null;
+      return;
+    }
+    if (lightboxPhaseRef.current !== 'open') {
+      prevLightboxIndexRef.current = lightbox.index;
+      return;
+    }
+
+    const prevIdx = prevLightboxIndexRef.current;
+    prevLightboxIndexRef.current = lightbox.index;
+    if (prevIdx === null || prevIdx === lightbox.index) return;
+
+    const imageWrap = lightboxImageWrapRef.current;
+    if (!imageWrap) return;
+
+    const total = lightbox.images.length;
+    const fwd = (lightbox.index - prevIdx + total) % total;
+    const dir = fwd <= total / 2 ? 1 : -1;
+
+    navAnimRef.current = animate(imageWrap, {
+      opacity: [0, 1],
+      translateX: [40 * dir, 0],
+      duration: 400,
+      ease: 'outQuint',
+    });
+  }, [lightbox?.index, lightbox?.openId]);
 
   useGSAP(() => {
     const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
@@ -700,21 +997,26 @@ const Home = () => {
                 <h3 className="text-3xl font-serif text-slate-900 mb-3">Makayla and Hunter</h3>
                 <p className="text-sm text-slate-400 font-serif uppercase tracking-widest">Glasbern - A Historic Hotel of America • Summer 2025</p>
               </div>
-              <div ref={wedding2GridRef} className="grid grid-cols-12 gap-4 md:gap-8 items-start">
+              <div ref={wedding2GridRef} className="group/gallery grid grid-cols-12 gap-4 md:gap-8 items-start">
                 {wedding2Images.map((img, i) => (
                   <div 
                     key={img.id} 
-                    className={`group cursor-pointer overflow-hidden rounded-[8px] ${img.className}`} 
-                    onClick={() => openLightbox(wedding2Images, i)}
+                    className={`relative group cursor-pointer rounded-[8px] transition-[filter] duration-500 group-hover/gallery:brightness-[0.85] hover:!brightness-100 ${img.className}`} 
+                    onClick={(e) => openLightbox(wedding2Images, i, e)}
+                    onMouseEnter={handleCardEnter}
+                    onMouseLeave={handleCardLeave}
                   >
-                    <div className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[8px] shadow-xl shadow-slate-200/50`}>
+                    <div
+                      data-gallery-card-inner="true"
+                      className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[8px] shadow-xl shadow-slate-200/50`}
+                    >
                       <ProgressiveCldImage
                         publicId={img.publicId}
                         cldImg={img.cldImg}
                         alt={`Makayla and Hunter photo ${i + 1}`}
                         loading="lazy"
                         decoding="async"
-                        imgClassName="object-cover group-hover:scale-105 transition-transform duration-[2000ms] ease-out"
+                        imgClassName="object-cover"
                       />
                     </div>
                   </div>
@@ -728,21 +1030,26 @@ const Home = () => {
                 <h3 className="text-3xl font-serif text-slate-900 mb-3">Molly and Brandon</h3>
                 <p className="text-sm text-slate-400 font-serif uppercase tracking-widest">Green Lane, Pennsylvania • Summer 2025</p>
               </div>
-              <div ref={wedding1GridRef} className="grid grid-cols-12 gap-4 md:gap-8 items-start">
+              <div ref={wedding1GridRef} className="group/gallery grid grid-cols-12 gap-4 md:gap-8 items-start">
                 {wedding1Images.map((img, i) => (
                   <div 
                     key={img.id} 
-                    className={`group cursor-pointer overflow-hidden rounded-[8px] ${img.className}`} 
-                    onClick={() => openLightbox(wedding1Images, i)}
+                    className={`relative group cursor-pointer rounded-[8px] transition-[filter] duration-500 group-hover/gallery:brightness-[0.85] hover:!brightness-100 ${img.className}`} 
+                    onClick={(e) => openLightbox(wedding1Images, i, e)}
+                    onMouseEnter={handleCardEnter}
+                    onMouseLeave={handleCardLeave}
                   >
-                    <div className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[8px] shadow-xl shadow-slate-200/50`}>
+                    <div
+                      data-gallery-card-inner="true"
+                      className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[8px] shadow-xl shadow-slate-200/50`}
+                    >
                       <ProgressiveCldImage
                         publicId={img.publicId}
                         cldImg={img.cldImg}
                         alt={`Molly and Brandon photo ${i + 1}`}
                         loading="lazy"
                         decoding="async"
-                        imgClassName="object-cover group-hover:scale-105 transition-transform duration-[2000ms] ease-out"
+                        imgClassName="object-cover"
                       />
                     </div>
                   </div>
@@ -764,21 +1071,26 @@ const Home = () => {
         </div>
 
         {renderSelected ? (
-          <div ref={assortedGridRef} className="grid grid-cols-12 gap-4 md:gap-8 items-start">
+          <div ref={assortedGridRef} className="group/gallery grid grid-cols-12 gap-4 md:gap-8 items-start">
             {assortedImages.map((img, i) => (
               <div 
                 key={img.id} 
-                className={`group cursor-pointer overflow-hidden rounded-[8px] ${img.className}`} 
-                onClick={() => openLightbox(assortedImages, i)}
+                className={`relative group cursor-pointer rounded-[8px] transition-[filter] duration-500 group-hover/gallery:brightness-[0.85] hover:!brightness-100 ${img.className}`} 
+                onClick={(e) => openLightbox(assortedImages, i, e)}
+                onMouseEnter={handleCardEnter}
+                onMouseLeave={handleCardLeave}
               >
-                <div className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[8px] shadow-xl shadow-slate-200/50`}>
+                <div
+                  data-gallery-card-inner="true"
+                  className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[8px] shadow-xl shadow-slate-200/50`}
+                >
                   <ProgressiveCldImage
                     publicId={img.publicId}
                     cldImg={img.cldImg}
                     alt={`Selected Work photo ${i + 1}`}
                     loading="lazy"
                     decoding="async"
-                    imgClassName="object-cover group-hover:scale-105 transition-transform duration-[2000ms] ease-out"
+                    imgClassName="object-cover"
                   />
                 </div>
               </div>
@@ -949,56 +1261,61 @@ const Home = () => {
 
       {/* Lightbox */}
       {lightbox && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ animation: 'lightboxIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
-        >
+        <div className="fixed inset-0 z-50">
           <div
+            ref={lightboxBackdropRef}
             className="absolute inset-0 bg-white/70 backdrop-blur-3xl"
             onClick={closeLightbox}
+            style={{ opacity: 0 }}
           />
 
-          <button
-            onClick={closeLightbox}
-            className="absolute top-8 right-8 z-20 p-2 text-slate-400 hover:text-slate-800 transition-colors duration-300"
-            aria-label="Close"
-          >
-            <X size={18} strokeWidth={1.5} />
-          </button>
+          <div ref={lightboxControlsRef} style={{ opacity: 0 }}>
+            <button
+              onClick={closeLightbox}
+              className="absolute top-8 right-8 z-20 p-2 text-slate-400 hover:text-slate-800 transition-colors duration-300"
+              aria-label="Close"
+            >
+              <X size={18} strokeWidth={1.5} />
+            </button>
 
-          {lightbox.images.length > 1 && (
-            <>
-              <button
-                onClick={() => navigateLightbox(-1)}
-                className="absolute left-4 md:left-8 z-20 p-3 text-slate-300 hover:text-slate-600 transition-colors duration-300"
-                aria-label="Previous image"
-              >
-                <ChevronLeft size={24} strokeWidth={1} />
-              </button>
-              <button
-                onClick={() => navigateLightbox(1)}
-                className="absolute right-4 md:right-8 z-20 p-3 text-slate-300 hover:text-slate-600 transition-colors duration-300"
-                aria-label="Next image"
-              >
-                <ChevronRight size={24} strokeWidth={1} />
-              </button>
-            </>
-          )}
+            {lightbox.images.length > 1 && (
+              <>
+                <button
+                  onClick={() => navigateLightbox(-1)}
+                  className="absolute left-4 md:left-8 z-20 p-3 text-slate-300 hover:text-slate-600 transition-colors duration-300"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft size={24} strokeWidth={1} />
+                </button>
+                <button
+                  onClick={() => navigateLightbox(1)}
+                  className="absolute right-4 md:right-8 z-20 p-3 text-slate-300 hover:text-slate-600 transition-colors duration-300"
+                  aria-label="Next image"
+                >
+                  <ChevronRight size={24} strokeWidth={1} />
+                </button>
+              </>
+            )}
 
-          <div
-            key={lightbox.index}
-            className="relative z-10 flex items-center justify-center px-16"
-            style={{ animation: 'lightboxImage 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
-          >
-            <AdvancedImage
-              cldImg={lightbox.images[lightbox.index].cldImg}
-              className="max-w-[85vw] max-h-[80vh] object-contain rounded-sm shadow-2xl shadow-slate-900/10"
-              alt={`Photo ${lightbox.index + 1} of ${lightbox.images.length}`}
-            />
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 text-[10px] text-slate-400 tracking-[0.3em] font-light tabular-nums">
+              {lightbox.index + 1} — {lightbox.images.length}
+            </div>
           </div>
 
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 text-[10px] text-slate-400 tracking-[0.3em] font-light tabular-nums">
-            {lightbox.index + 1} — {lightbox.images.length}
+          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none px-16">
+            <div
+              ref={lightboxImageWrapRef}
+              className="pointer-events-auto overflow-hidden shadow-2xl shadow-slate-900/10"
+              style={{ transformOrigin: 'center', borderRadius: '8px', opacity: 0 }}
+            >
+              <div ref={lightboxImageInnerRef} style={{ transformOrigin: 'center' }}>
+                <AdvancedImage
+                  cldImg={lightbox.images[lightbox.index].cldImg}
+                  className="block max-w-[85vw] max-h-[80vh] object-contain"
+                  alt={`Photo ${lightbox.index + 1} of ${lightbox.images.length}`}
+                />
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -4,6 +4,11 @@
   body {
     @apply bg-white text-slate-900 antialiased selection:bg-slate-200 selection:text-slate-900;
   }
+
+  img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
 }
 
 /* Animations */
@@ -64,4 +69,26 @@
     opacity: 1;
     pointer-events: auto;
   }
+}
+
+[data-lightbox-open] nav {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  backdrop-filter: blur(0px) saturate(1) !important;
+  -webkit-backdrop-filter: blur(0px) saturate(1) !important;
+}
+
+[data-lightbox-open] [data-nav-bg] {
+  opacity: 0 !important;
+}
+
+[data-lightbox-restoring] nav {
+  transition: background-color 0.98s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.98s cubic-bezier(0.16, 1, 0.3, 1),
+              backdrop-filter 0.98s cubic-bezier(0.16, 1, 0.3, 1),
+              -webkit-backdrop-filter 0.98s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-lightbox-restoring] [data-nav-bg] {
+  transition: opacity 0.98s cubic-bezier(0.16, 1, 0.3, 1);
 }

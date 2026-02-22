@@ -61,6 +61,10 @@ const ScrollBookingReveal = ({ sectionRef: externalSectionRef } = {}) => {
           r.current.style.transform = 'none';
         }
       });
+      if (formCardRef.current) {
+        formCardRef.current.style.pointerEvents = 'auto';
+        formCardRef.current.style.visibility = 'visible';
+      }
       formFieldRefs.current.forEach((el) => {
         if (el) {
           el.style.opacity = '1';
@@ -74,6 +78,11 @@ const ScrollBookingReveal = ({ sectionRef: externalSectionRef } = {}) => {
     if (!section) return;
 
     const fields = formFieldRefs.current.filter(Boolean);
+
+    if (formCardRef.current) {
+      formCardRef.current.style.pointerEvents = 'none';
+      formCardRef.current.style.visibility = 'hidden';
+    }
 
     const tl = createTimeline({
       defaults: { ease: 'out(3)' },
@@ -132,11 +141,23 @@ const ScrollBookingReveal = ({ sectionRef: externalSectionRef } = {}) => {
         const vh = window.innerHeight;
         const inZone = rect.top < -vh * 0.3;
         setActiveOverride(inZone ? '/booking' : null);
+
+        const card = formCardRef.current;
+        if (card) {
+          const opacity = Number.parseFloat(
+            window.getComputedStyle(card).opacity ?? '0',
+          );
+          const isVisible = opacity > 0.2;
+          card.style.pointerEvents = isVisible ? 'auto' : 'none';
+          card.style.visibility = isVisible ? 'visible' : 'hidden';
+        }
+
         ticking = false;
       });
     };
 
     window.addEventListener('scroll', onScrollCheck, { passive: true });
+    onScrollCheck();
     return () => {
       window.removeEventListener('scroll', onScrollCheck);
       setActiveOverride(null);
@@ -214,7 +235,7 @@ const ScrollBookingReveal = ({ sectionRef: externalSectionRef } = {}) => {
   return (
     <section
       ref={sectionRef}
-      className="relative"
+      className="relative pointer-events-none"
       style={{ height: '350vh', marginTop: '-90vh' }}
     >
       <div
@@ -238,11 +259,13 @@ const ScrollBookingReveal = ({ sectionRef: externalSectionRef } = {}) => {
         {/* Form card - sits on top */}
         <div
           ref={formCardRef}
-          className="relative z-10 w-full px-6 pointer-events-auto"
+          className="relative z-10 w-full px-6 pointer-events-none"
           style={{
             opacity: 0,
             maxWidth: 608,
             willChange: 'opacity, transform',
+            pointerEvents: 'none',
+            visibility: 'hidden',
           }}
         >
           <div

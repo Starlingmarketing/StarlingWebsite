@@ -131,6 +131,7 @@ const Navbar = () => {
     >
       <div
         ref={navBgRef}
+        data-nav-bg
         className="absolute inset-0 pointer-events-none"
         style={{
           opacity: 0,
