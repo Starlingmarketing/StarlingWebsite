@@ -435,7 +435,6 @@ const Home = () => {
   useGSAP(() => {
     const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
 
-    // Initial states
     gsap.set('.hero-eyebrow', { y: 20, opacity: 0 });
     gsap.set('.hero-text-line', { y: 32, opacity: 0 });
     gsap.set('.hero-desc', { y: 16, opacity: 0 });
@@ -455,73 +454,29 @@ const Home = () => {
       return;
     }
 
-    // Animation sequence
-    // Text leads slightly; image follows for a cleaner, more natural pacing.
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-    tl.to(
-      '.hero-eyebrow',
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.8,
-        ease: 'power2.out',
-      },
-      0
-    )
-      .to(
-        '.hero-text-line',
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.9,
-        stagger: 0.08,
-        ease: 'power3.out',
-      },
-      0
-    )
-      .to(
-        '.hero-desc',
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: 'power2.out',
-        },
-        0.32
-      )
-      .to(
-        '.hero-link',
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.7,
-          ease: 'power2.out',
-        },
-        0.48
-      )
-      .to(
-        '.hero-stack-wrapper',
-        {
-          opacity: 1,
-          duration: 1.0,
-          ease: 'power2.out',
-          clearProps: 'opacity',
-        },
-        0.18
-      )
-      .to(
-        stackCards,
-        {
-          x: (i) => i * STACK_OFFSET_X,
-          y: (i) => i * -STACK_OFFSET_Y,
-          duration: 1.5,
-          stagger: 0.1,
-          ease: 'power4.out',
-          onComplete: () => setEntranceDone(true),
-        },
-        0.18
-      );
+    tl.to('.hero-eyebrow', {
+      y: 0, opacity: 1, duration: 0.8, ease: 'power2.out',
+    }, 0)
+      .to('.hero-text-line', {
+        y: 0, opacity: 1, duration: 0.9, stagger: 0.08, ease: 'power3.out',
+      }, 0)
+      .to('.hero-desc', {
+        y: 0, opacity: 1, duration: 0.8, ease: 'power2.out',
+      }, 0.32)
+      .to('.hero-link', {
+        y: 0, opacity: 1, duration: 0.7, ease: 'power2.out',
+      }, 0.48)
+      .to('.hero-stack-wrapper', {
+        opacity: 1, duration: 1.0, ease: 'power2.out', clearProps: 'opacity',
+      }, 0.6)
+      .to(stackCards, {
+        x: (i) => i * STACK_OFFSET_X,
+        y: (i) => i * -STACK_OFFSET_Y,
+        duration: 1.5, stagger: 0.1, ease: 'power4.out',
+        onComplete: () => setEntranceDone(true),
+      }, 0.6);
 
     const content = reviewsContentRef.current;
     const wrapper = reviewsSectionRef.current;
