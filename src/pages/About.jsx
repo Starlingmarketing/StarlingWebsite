@@ -158,7 +158,11 @@ const About = () => {
   }, []);
 
   return (
-    <div ref={pageRef} className="min-h-[80vh] px-6 md:px-12 max-w-7xl mx-auto py-8 md:py-16 flex flex-col justify-center">
+    <div
+      ref={pageRef}
+      id="about-page"
+      className="min-h-[80vh] px-6 md:px-12 max-w-7xl mx-auto py-8 md:py-16 flex flex-col justify-center"
+    >
       <div
         className={[
           'md:hidden fixed inset-x-0 z-40 flex justify-center transition-[opacity,transform] duration-300 ease-out',
@@ -177,10 +181,10 @@ const About = () => {
           <ArrowRight size={14} strokeWidth={1.5} className="group-hover:translate-x-1 transition-transform duration-300" />
         </button>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+      <div className="about-hero-grid grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
         {/* Image Section */}
-        <div ref={imageRef} className="order-2 lg:order-1 flex justify-center">
-          <div className="aspect-[4/5] bg-slate-100 w-[90%] md:w-[80%] lg:w-[85%] relative overflow-hidden">
+        <div ref={imageRef} className="about-hero-image order-2 lg:order-1 flex justify-center mt-4 lg:mt-0">
+          <div className="about-hero-imageInner aspect-[4/5] bg-slate-100 w-[90%] md:w-[80%] lg:w-[85%] relative overflow-hidden">
             <AdvancedImage
               cldImg={aboutImage}
               className="absolute inset-0 w-full h-full object-cover"
@@ -192,13 +196,13 @@ const About = () => {
         </div>
 
         {/* Text Section */}
-        <div ref={textRef} className="order-1 lg:order-2">
-          <h2 className="text-xs uppercase tracking-[0.3em] text-slate-400 mb-4">About Starling</h2>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight text-slate-900 mb-6 leading-[1.1]">
+        <div ref={textRef} className="about-hero-text order-1 lg:order-2">
+          <h2 className="about-hero-eyebrow text-xs uppercase tracking-[0.3em] text-slate-400 mb-4">About Starling</h2>
+          <h1 className="about-hero-heading text-4xl md:text-5xl lg:text-6xl font-light tracking-tight text-slate-900 mb-6 leading-[1.1]">
             <span className="italic font-serif text-slate-500">Our</span> Approach.
           </h1>
           
-          <div className="space-y-4 text-slate-600 font-light leading-relaxed">
+          <div className="about-hero-body space-y-4 text-slate-600 font-light leading-relaxed">
             <p>
               There is a time and place for everything in art. Sometimes, the story calls for a clean, classic,
               and timeless capture. Other times, it demands that we completely break the mold to build a bold,
@@ -218,7 +222,7 @@ const About = () => {
             </p>
           </div>
 
-          <div className="flex justify-center lg:justify-start mt-10">
+          <div className="about-hero-ctaWrap hidden lg:flex justify-start mt-10">
             <button
               ref={reachOutButtonRef}
               onClick={() => setShowQuoteModal(true)}
@@ -228,6 +232,18 @@ const About = () => {
               <ArrowRight size={14} strokeWidth={1.5} className="group-hover:translate-x-1 transition-transform duration-300" />
             </button>
           </div>
+        </div>
+
+        {/* Mobile-only CTA below image */}
+        <div className="about-hero-ctaWrap flex lg:hidden justify-center order-3 mt-10">
+          <button
+            ref={reachOutButtonRef}
+            onClick={() => setShowQuoteModal(true)}
+            className="group inline-flex items-center justify-center gap-1.5 w-[130px] h-[30px] bg-[#242424] text-white rounded-[17px] text-[13px] font-normal hover:bg-black transition-colors duration-300"
+          >
+            <span>Reach Out</span>
+            <ArrowRight size={14} strokeWidth={1.5} className="group-hover:translate-x-1 transition-transform duration-300" />
+          </button>
         </div>
       </div>
 

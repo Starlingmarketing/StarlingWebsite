@@ -9,8 +9,34 @@ import {
 } from '../pages/Booking';
 import { NavOverrideContext } from '../contexts/NavContext';
 
+const useMediaQuery = (query) => {
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia?.(query)?.matches ?? false;
+  });
+
+  useEffect(() => {
+    const mediaQueryList = window.matchMedia?.(query);
+    if (!mediaQueryList) return undefined;
+
+    const handleChange = () => setMatches(Boolean(mediaQueryList.matches));
+    handleChange();
+
+    if (mediaQueryList.addEventListener) {
+      mediaQueryList.addEventListener('change', handleChange);
+      return () => mediaQueryList.removeEventListener('change', handleChange);
+    }
+
+    mediaQueryList.addListener(handleChange);
+    return () => mediaQueryList.removeListener(handleChange);
+  }, [query]);
+
+  return matches;
+};
+
 const ScrollBookingReveal = ({ sectionRef: externalSectionRef } = {}) => {
   const { setActiveOverride } = useContext(NavOverrideContext);
+  const showCinematicGrid = useMediaQuery('(min-width: 768px)');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -125,6 +151,7 @@ const ScrollBookingReveal = ({ sectionRef: externalSectionRef } = {}) => {
       tl.revert();
       timelineRef.current = null;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- sectionRef is a stable ref
   }, []);
 
   useEffect(() => {
@@ -162,6 +189,7 @@ const ScrollBookingReveal = ({ sectionRef: externalSectionRef } = {}) => {
       window.removeEventListener('scroll', onScrollCheck);
       setActiveOverride(null);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- sectionRef is a stable ref
   }, [setActiveOverride]);
 
   const handleChange = useCallback((e) => {
@@ -239,22 +267,23 @@ const ScrollBookingReveal = ({ sectionRef: externalSectionRef } = {}) => {
       style={{ marginTop: '-90vh' }}
     >
       <div
+        data-scroll-booking-stage="true"
         className="sticky top-0 h-screen flex items-center justify-center overflow-hidden pointer-events-none"
         style={{ zIndex: 20 }}
       >
         {/* Reviews grid - fades in behind the form */}
-        <div
-          ref={reviewsRef}
-          className="absolute inset-0 hidden md:flex items-center justify-center overflow-hidden pointer-events-none"
-          style={{ opacity: 0 }}
-        >
-          <div className="w-full px-6 md:px-12">
-            <CinematicReviewGrid
-              engineRef={railEngineRef}
-              initialReviews={initialGridReviews}
-            />
+        {showCinematicGrid ? (
+          <div
+            ref={reviewsRef}
+            data-scroll-booking-grid="true"
+            className="absolute inset-0 hidden md:flex items-center justify-center overflow-hidden pointer-events-none"
+            style={{ opacity: 0 }}
+          >
+            <div className="w-full px-6 md:px-12">
+              <CinematicReviewGrid engineRef={railEngineRef} initialReviews={initialGridReviews} />
+            </div>
           </div>
-        </div>
+        ) : null}
 
         {/* Form card - sits on top */}
         <div
@@ -269,6 +298,7 @@ const ScrollBookingReveal = ({ sectionRef: externalSectionRef } = {}) => {
           }}
         >
           <div
+            data-booking-form-card="true"
             className="relative overflow-hidden px-6 py-8 sm:px-11 sm:py-9"
             style={{
               borderRadius: 22,
@@ -278,6 +308,7 @@ const ScrollBookingReveal = ({ sectionRef: externalSectionRef } = {}) => {
           >
             {/* Success overlay */}
             <div
+              data-booking-form-success="true"
               className={`absolute inset-0 flex flex-col items-center justify-between transition-all ease-[cubic-bezier(0.23,1,0.32,1)] px-6 py-8 sm:px-11 sm:py-9 ${
                 status === 'success'
                   ? 'opacity-100 translate-y-0 z-10 pointer-events-auto duration-1000 delay-500'

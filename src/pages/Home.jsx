@@ -69,7 +69,7 @@ const STACK_OFFSET_MOBILE_X = 24;
 const STACK_OFFSET_MOBILE_Y = 16;
 const STACK_COUNT = 3;
 const CARD_SHADOWS = ['none', 'none', 'none'];
-const LIGHTBOX_RADIUS_PX = 8;
+const LIGHTBOX_RADIUS_PX = 0;
 
 const useMediaQuery = (query) => {
   const getInitial = () => {
@@ -334,7 +334,7 @@ const Home = () => {
   const stackIntervalRef = useRef(null);
   const stackRef = useRef(null);
   const visibleSetRef = useRef([0, 1, 2]);
-  const hasInitialized = useRef(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const isMobileStack = useMediaQuery(
     '(max-width: 767px), (orientation: landscape) and (max-height: 500px)'
@@ -409,6 +409,7 @@ const Home = () => {
     if (typeof window === 'undefined') return undefined;
 
     if (!isMobileStack) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync UI with media query
       setShowStickyReachOut(false);
       return undefined;
     }
@@ -445,7 +446,7 @@ const Home = () => {
   }, [isMobileStack]);
 
   useEffect(() => {
-    const t = setTimeout(() => { hasInitialized.current = true; }, 2000);
+    const t = setTimeout(() => { setHasInitialized(true); }, 2000);
     return () => clearTimeout(t);
   }, []);
 
@@ -564,7 +565,7 @@ const Home = () => {
       return;
     }
 
-    imageWrap.style.willChange = 'transform, border-radius';
+    imageWrap.style.willChange = 'transform, border-radius, opacity';
     if (imageInner) imageInner.style.willChange = 'transform';
 
     document.documentElement.setAttribute('data-lightbox-restoring', '');
@@ -619,6 +620,16 @@ const Home = () => {
         0,
       );
 
+      tl.add(
+        imageWrap,
+        {
+          opacity: [1, 0],
+          duration: 420,
+          ease: 'outQuad',
+        },
+        0,
+      );
+
       if (imageInner) {
         tl.add(
           imageInner,
@@ -636,10 +647,10 @@ const Home = () => {
         backdrop,
         {
           opacity: [1, 0],
-          duration: 900,
+          duration: isMobileStack ? 250 : 900,
           ease: 'inOutCubic',
         },
-        80,
+        isMobileStack ? 0 : 80,
       );
     } else {
       tl.add(imageWrap, {
@@ -650,11 +661,11 @@ const Home = () => {
       }, 0);
       tl.add(backdrop, {
         opacity: [1, 0],
-        duration: 620,
+        duration: isMobileStack ? 250 : 620,
         ease: 'inOutCubic',
       }, 0);
     }
-  }, [isMobileLandscape, lightboxOpenRadius, lightboxSourceRadiusPx]);
+  }, [isMobileLandscape, isMobileStack, lightboxOpenRadius, lightboxSourceRadiusPx]);
 
   const navigateLightbox = useCallback((dir) => {
     if (lightboxPhaseRef.current !== 'open') return;
@@ -707,10 +718,13 @@ const Home = () => {
     const prevBodyPaddingRight = body.style.paddingRight;
     const scrollBarGap = window.innerWidth - docEl.clientWidth;
 
-    docEl.style.overflow = 'hidden';
-    body.style.overflow = 'hidden';
-    if (scrollBarGap > 0) {
-      body.style.paddingRight = `${scrollBarGap}px`;
+    const isMobile = window.matchMedia('(max-width: 1023px)').matches;
+    if (isMobile) {
+      docEl.style.overflow = 'hidden';
+      body.style.overflow = 'hidden';
+      if (scrollBarGap > 0) {
+        body.style.paddingRight = `${scrollBarGap}px`;
+      }
     }
 
     const handleKey = (e) => {
@@ -800,7 +814,7 @@ const Home = () => {
         const tl = createTimeline({
           onComplete: () => { lightboxPhaseRef.current = 'open'; },
         });
-        tl.add(backdrop, { opacity: [0, 1], duration: 820, ease: 'outCubic' }, 0);
+        tl.add(backdrop, { opacity: [0, 1], duration: isMobileStack ? 280 : 820, ease: 'outCubic' }, 0);
         tl.add(imageWrap, { opacity: [0, 1], scale: [0.94, 1], duration: 980, ease: 'outQuint' }, 0);
         if (controls) tl.add(controls, { opacity: [0, 1], duration: 520, ease: 'outCubic' }, 420);
         return;
@@ -836,7 +850,7 @@ const Home = () => {
 
       tl.add(backdrop, {
         opacity: [0, 1],
-        duration: 820,
+        duration: isMobileStack ? 280 : 820,
         ease: 'outCubic',
       }, 0);
 
@@ -869,14 +883,14 @@ const Home = () => {
     };
 
     requestAnimationFrame(() => requestAnimationFrame(runFlip));
-  }, [isMobileLandscape, lightbox?.openId, lightboxOpenRadius, lightboxSourceRadiusPx]);
+  }, [isMobileLandscape, isMobileStack, lightbox?.openId, lightboxOpenRadius, lightboxSourceRadiusPx]);
 
   useEffect(() => {
     if (!lightbox || lightboxPhaseRef.current !== 'open') return;
     const imageWrap = lightboxImageWrapRef.current;
     if (!imageWrap) return;
     imageWrap.style.borderRadius = lightboxOpenRadius;
-  }, [isMobileLandscape, lightbox?.openId, lightboxOpenRadius]);
+  }, [isMobileLandscape, lightbox, lightbox?.openId, lightboxOpenRadius]);
 
   useEffect(() => {
     if (!lightbox) {
@@ -905,7 +919,7 @@ const Home = () => {
       duration: 400,
       ease: 'outQuint',
     });
-  }, [lightbox?.index, lightbox?.openId]);
+  }, [lightbox, lightbox?.index, lightbox?.openId]);
 
   useGSAP(() => {
     const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
@@ -1261,7 +1275,7 @@ const Home = () => {
                   <div
                     className="w-full h-full"
                     style={
-                      pos === STACK_COUNT - 1 && hasInitialized.current
+                      pos === STACK_COUNT - 1 && hasInitialized
                         ? { animation: 'stackCardIn 1.6s cubic-bezier(0.16, 1, 0.3, 1) both' }
                         : undefined
                     }
@@ -1308,8 +1322,8 @@ const Home = () => {
             {/* Gallery 2 - Makayla and Hunter */}
             <div>
               <div ref={wedding2HeaderRef} className="mb-8 text-center">
-                <h3 className="text-3xl font-serif text-slate-900 mb-3">Makayla and Hunter</h3>
-                <p className="text-sm text-slate-400 font-serif uppercase tracking-widest whitespace-normal break-words max-w-full">
+                <h3 className="text-xl md:text-2xl font-serif text-slate-900 mb-2 md:mb-3">Makayla and Hunter</h3>
+                <p className="text-[10px] md:text-[11px] text-slate-400 font-serif uppercase tracking-widest whitespace-normal break-words max-w-full">
                   Glasbern - A Historic Hotel of America • Summer 2025
                 </p>
               </div>
@@ -1346,8 +1360,8 @@ const Home = () => {
             {/* Gallery 1 */}
             <div>
               <div ref={wedding1HeaderRef} className="mb-8 text-center">
-                <h3 className="text-3xl font-serif text-slate-900 mb-3">Molly and Brandon</h3>
-                <p className="text-sm text-slate-400 font-serif uppercase tracking-widest whitespace-normal break-words max-w-full">
+                <h3 className="text-xl md:text-2xl font-serif text-slate-900 mb-2 md:mb-3">Molly and Brandon</h3>
+                <p className="text-[10px] md:text-[11px] text-slate-400 font-serif uppercase tracking-widest whitespace-normal break-words max-w-full">
                   Green Lane, Pennsylvania • Summer 2025
                 </p>
               </div>
@@ -1593,11 +1607,15 @@ const Home = () => {
 
       {/* Lightbox */}
       {lightbox && (
-        <div className="fixed inset-0 z-50" data-starling-lightbox>
+        <div className="fixed inset-0 z-50 lg:z-[45]" data-starling-lightbox>
           <div
             ref={lightboxBackdropRef}
             className={`absolute inset-0 ${
-              isMobileLandscape ? 'bg-black' : 'bg-white/70 backdrop-blur-3xl'
+              isMobileLandscape
+                ? 'bg-black'
+                : isMobileStack
+                  ? 'bg-black/40 backdrop-blur-sm'
+                  : 'bg-transparent'
             }`}
             onClick={closeLightbox}
             style={{ opacity: 0 }}
@@ -1617,7 +1635,7 @@ const Home = () => {
               className={`absolute z-20 p-2 transition-colors duration-300 ${
                 isMobileLandscape
                   ? 'w-12 h-12 p-0 flex items-center justify-center bg-transparent text-white/90 hover:text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]'
-                  : 'top-8 right-8 text-slate-400 hover:text-slate-800'
+                  : 'hidden'
               }`}
               aria-label="Close"
             >
@@ -1631,22 +1649,22 @@ const Home = () => {
                   className={`absolute z-20 p-3 transition-colors duration-300 ${
                     isMobileLandscape
                       ? 'left-3 top-1/2 -translate-y-1/2 text-white/80 hover:text-white'
-                      : 'left-4 md:left-8 text-slate-300 hover:text-slate-600'
+                      : 'hidden md:block left-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700'
                   }`}
                   aria-label="Previous image"
                 >
-                  <ChevronLeft size={24} strokeWidth={1} />
+                  <ChevronLeft size={isMobileLandscape ? 24 : 72} strokeWidth={0.8} />
                 </button>
                 <button
                   onClick={() => navigateLightbox(1)}
                   className={`absolute z-20 p-3 transition-colors duration-300 ${
                     isMobileLandscape
                       ? 'right-3 top-1/2 -translate-y-1/2 text-white/80 hover:text-white'
-                      : 'right-4 md:right-8 text-slate-300 hover:text-slate-600'
+                      : 'hidden md:block right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700'
                   }`}
                   aria-label="Next image"
                 >
-                  <ChevronRight size={24} strokeWidth={1} />
+                  <ChevronRight size={isMobileLandscape ? 24 : 72} strokeWidth={0.8} />
                 </button>
               </>
             )}
@@ -1667,15 +1685,33 @@ const Home = () => {
           >
             <div
               ref={lightboxImageWrapRef}
-              className={`pointer-events-auto overflow-hidden ${
-                isMobileLandscape ? 'w-full h-full shadow-none' : 'shadow-2xl shadow-slate-900/10'
+              className={`pointer-events-auto relative overflow-hidden ${
+                isMobileLandscape
+                  ? 'w-full h-full shadow-none'
+                  : 'shadow-2xl shadow-slate-900/10'
               }`}
               style={{
                 transformOrigin: 'center',
-                borderRadius: isMobileLandscape ? '0px' : '8px',
+                borderRadius: '0px',
                 opacity: 0,
               }}
             >
+              <button
+                type="button"
+                onClick={closeLightbox}
+                className={`${isMobileLandscape ? 'hidden' : 'flex'} absolute top-4 right-4 z-30 p-1.5 text-white bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-[8px] transition-all`}
+                aria-label="Close"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" />
+                </svg>
+              </button>
               <div
                 ref={lightboxImageInnerRef}
                 className={isMobileLandscape ? 'w-full h-full' : undefined}
@@ -1686,7 +1722,7 @@ const Home = () => {
                   className={
                     isMobileLandscape
                       ? 'block w-full h-full max-w-none max-h-none object-contain'
-                      : 'block max-w-[92vw] md:max-w-[85vw] max-h-[80vh] object-contain'
+                      : 'block max-w-[92vw] md:max-w-[85vw] lg:max-w-[920px] max-h-[80vh] lg:max-h-[72vh] object-contain'
                   }
                   alt={`Photo ${lightbox.index + 1} of ${lightbox.images.length}`}
                 />

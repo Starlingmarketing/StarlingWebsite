@@ -19,6 +19,7 @@ const Navbar = () => {
   const activePath = activeOverride || location.pathname;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset menu on route change
     setIsOpen(false);
   }, [location.pathname]);
 

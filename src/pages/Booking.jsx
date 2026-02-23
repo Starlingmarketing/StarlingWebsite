@@ -213,7 +213,7 @@ const cinematicReviewPool = [
 ];
 
 const cinematicReviewsWithText = cinematicReviewPool.filter((review) => Boolean(String(review.text ?? '').trim()));
-const cinematicReviewsStarsOnly = cinematicReviewPool.filter((review) => !Boolean(String(review.text ?? '').trim()));
+const cinematicReviewsStarsOnly = cinematicReviewPool.filter((review) => !String(review.text ?? '').trim());
 
 const ShortReviewCard = ({ review, index }) => {
   const hasText = Boolean(String(review.text ?? '').trim());
@@ -317,7 +317,10 @@ const usePrefersReducedMotion = () => {
 };
 
 const useMediaQuery = (query) => {
-  const [matches, setMatches] = useState(false);
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia?.(query)?.matches ?? false;
+  });
 
   useEffect(() => {
     const mediaQueryList = window.matchMedia?.(query);
@@ -655,9 +658,8 @@ const CinematicGridSlot = ({
     if (id) engine.slots[slotKey] = id;
 
     return () => {
-      const currentEngine = engineRef?.current;
-      if (!currentEngine) return;
-      delete currentEngine.slots?.[slotKey];
+      if (!engine) return;
+      delete engine.slots?.[slotKey];
     };
   }, [engineRef, slotKey]);
 
@@ -1042,7 +1044,7 @@ const ReviewsGrid = ({ showHeading = true, animate = true } = {}) => {
   const remainingStarOnlyReviews = starOnlyReviews.slice(shortFillCount);
 
   return (
-    <section ref={gridRef} className="mt-24 w-full">
+    <section ref={gridRef} data-reviews-grid="true" className="mt-24 w-full">
       <div className="px-6 md:px-12 max-w-7xl mx-auto">
         {showHeading && (
           <h2 className="text-center text-xs uppercase tracking-[0.2em] text-slate-400">
@@ -1093,6 +1095,8 @@ const ReviewsGrid = ({ showHeading = true, animate = true } = {}) => {
 };
 
 const Booking = () => {
+  const showCinematicGrid = useMediaQuery('(min-width: 1024px)');
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -1217,7 +1221,7 @@ const Booking = () => {
   }, []);
 
   return (
-    <div ref={pageRef} className="min-h-screen py-12 md:py-24 relative isolate">
+    <div id="booking-page" ref={pageRef} className="min-h-screen py-12 md:py-24 relative isolate">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 -top-24 z-0 h-[clamp(1800px,220vh,3000px)] lg:h-[clamp(1600px,200vh,2600px)]"
@@ -1237,16 +1241,19 @@ const Booking = () => {
 
       <div className="relative z-10">
         <div className="px-6 md:px-12 max-w-7xl mx-auto lg:grid lg:grid-cols-1">
-          <div ref={gridWrapRef} className="hidden lg:block lg:col-start-1 lg:row-start-1">
-            <CinematicReviewGrid
-              engineRef={railEngineRef}
-              initialReviews={initialGridReviews}
-            />
-          </div>
+          {showCinematicGrid ? (
+            <div ref={gridWrapRef} className="lg:col-start-1 lg:row-start-1">
+              <CinematicReviewGrid engineRef={railEngineRef} initialReviews={initialGridReviews} />
+            </div>
+          ) : null}
 
-          <div className="mt-10 lg:mt-0 lg:col-start-1 lg:row-start-1 lg:flex lg:items-start lg:justify-center lg:pointer-events-none lg:z-10 lg:pt-[114px]">
+          <div
+            data-booking-form-wrap="true"
+            className="mt-10 lg:mt-0 lg:col-start-1 lg:row-start-1 lg:flex lg:items-start lg:justify-center lg:pointer-events-none lg:z-10 lg:pt-[114px]"
+          >
             <div
               ref={formCardRef}
+              data-booking-form-card="true"
               className="mx-auto lg:pointer-events-auto relative overflow-hidden px-6 py-8 sm:px-11 sm:py-9"
               style={{
                 width: '100%',
@@ -1257,6 +1264,7 @@ const Booking = () => {
               }}
             >
               <div
+                data-booking-form-success="true"
                 className={`absolute inset-0 flex flex-col items-center justify-between transition-all ease-[cubic-bezier(0.23,1,0.32,1)] px-6 py-8 sm:px-11 sm:py-9 ${
                   status === 'success' 
                     ? 'opacity-100 translate-y-0 z-10 pointer-events-auto duration-1000 delay-500' 
@@ -1523,5 +1531,6 @@ const Booking = () => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- shared review data used by ScrollBookingReveal & Home
 export { ReviewsGrid, CinematicReviewGrid, cinematicReviewPool, shuffleInPlace, REVIEW_GRID_TOTAL };
 export default Booking;
