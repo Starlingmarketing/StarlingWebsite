@@ -54,6 +54,11 @@ const Navbar = () => {
       const bg = navBgRef.current;
       if (!nav || !bg) return;
 
+      // While the lightbox is open scroll is locked and body is position:fixed,
+      // which shifts getBoundingClientRect values. Preserve the last-known state
+      // so the nav keeps the correct dark/light appearance.
+      if (document.documentElement.hasAttribute('data-lightbox-open')) return;
+
       const navRect = nav.getBoundingClientRect();
       const darkSections = document.querySelectorAll('[data-nav-dark]');
 
@@ -64,6 +69,12 @@ const Navbar = () => {
           isDark = true;
           break;
         }
+      }
+
+      if (isDark) {
+        nav.setAttribute('data-over-dark', '');
+      } else {
+        nav.removeAttribute('data-over-dark');
       }
 
       if (isDark !== wasDark) {
