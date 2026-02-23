@@ -714,9 +714,15 @@ const Home = () => {
     const scrollBarGap = window.innerWidth - docEl.clientWidth;
 
     const isMobile = window.matchMedia('(max-width: 1023px)').matches;
+    const savedScrollY = window.scrollY;
     if (isMobile) {
       docEl.style.overflow = 'hidden';
       body.style.overflow = 'hidden';
+      body.style.position = 'fixed';
+      body.style.top = `-${savedScrollY}px`;
+      body.style.width = '100%';
+      body.style.overscrollBehavior = 'none';
+      docEl.style.overscrollBehavior = 'none';
       if (scrollBarGap > 0) {
         body.style.paddingRight = `${scrollBarGap}px`;
       }
@@ -756,6 +762,14 @@ const Home = () => {
       docEl.style.overflow = prevOverflow;
       body.style.overflow = prevBodyOverflow;
       body.style.paddingRight = prevBodyPaddingRight;
+      if (isMobile) {
+        body.style.position = '';
+        body.style.top = '';
+        body.style.width = '';
+        body.style.overscrollBehavior = '';
+        docEl.style.overscrollBehavior = '';
+        window.scrollTo(0, savedScrollY);
+      }
     };
   }, [lightbox, closeLightbox, navigateLightbox]);
 
@@ -1544,7 +1558,7 @@ const Home = () => {
               }
               className={`absolute z-20 p-2 transition-colors duration-300 ${
                 isMobileLandscape
-                  ? 'w-12 h-12 p-0 flex items-center justify-center bg-transparent text-white/90 hover:text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]'
+                  ? 'w-12 h-12 p-0 flex items-center justify-center bg-transparent text-white hover:text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]'
                   : 'hidden'
               }`}
               aria-label="Close"
@@ -1558,7 +1572,7 @@ const Home = () => {
                   onClick={() => navigateLightbox(-1)}
                   className={`absolute z-20 p-3 transition-colors duration-300 ${
                     isMobileLandscape
-                      ? 'left-3 top-1/2 -translate-y-1/2 text-white/80 hover:text-white'
+                      ? 'left-3 top-1/2 -translate-y-1/2 text-white hover:text-white'
                       : 'hidden md:block left-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700'
                   }`}
                   aria-label="Previous image"
@@ -1569,7 +1583,7 @@ const Home = () => {
                   onClick={() => navigateLightbox(1)}
                   className={`absolute z-20 p-3 transition-colors duration-300 ${
                     isMobileLandscape
-                      ? 'right-3 top-1/2 -translate-y-1/2 text-white/80 hover:text-white'
+                      ? 'right-3 top-1/2 -translate-y-1/2 text-white hover:text-white'
                       : 'hidden md:block right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700'
                   }`}
                   aria-label="Next image"

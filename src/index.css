@@ -192,20 +192,11 @@ nav[data-menu-open] [data-nav-bg] {
     pointer-events: none !important;
   }
 
-  /* Use visual viewport units on mobile landscape to prevent clipping under browser UI. */
+  /* Let Tailwind's `fixed inset-0` anchor to every viewport edge so the
+     lightbox stays fullscreen even when mobile Safari's chrome toggles. */
   [data-starling-lightbox] {
-    inset: auto !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-  }
-
-  @supports (height: 100dvh) {
-    [data-starling-lightbox] {
-      width: 100dvw !important;
-      height: 100dvh !important;
-    }
+    touch-action: none;
+    overscroll-behavior: none;
   }
 
   #home-hero {
@@ -246,6 +237,10 @@ nav[data-menu-open] [data-nav-bg] {
     align-self: flex-start;
   }
 
+  #home-hero h1 {
+    font-size: clamp(14px, 3.2vw, 20px) !important;
+  }
+
   #home-hero .hero-desc {
     font-size: 0.875rem;
     line-height: 1.5rem;
@@ -260,6 +255,7 @@ nav[data-menu-open] [data-nav-bg] {
 
   #home-featured .home-gallery-grid,
   #home-selected .home-gallery-grid {
+    grid-template-columns: repeat(4, 1fr);
     gap: 0.5rem;
   }
 
