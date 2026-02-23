@@ -57,7 +57,8 @@ const Navbar = () => {
       // While the lightbox is open scroll is locked and body is position:fixed,
       // which shifts getBoundingClientRect values. Preserve the last-known state
       // so the nav keeps the correct dark/light appearance.
-      if (document.documentElement.hasAttribute('data-lightbox-open')) return;
+      if (document.documentElement.hasAttribute('data-lightbox-open') ||
+          document.documentElement.hasAttribute('data-quote-modal-open')) return;
 
       const navRect = nav.getBoundingClientRect();
       const darkSections = document.querySelectorAll('[data-nav-dark]');

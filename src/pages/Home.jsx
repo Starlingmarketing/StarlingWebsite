@@ -306,16 +306,22 @@ const Home = () => {
     if (typeof document === 'undefined') return undefined;
 
     const docEl = document.documentElement;
-    if (showQuoteModal) {
+    if (showQuoteModal && !isClosingQuoteModal) {
       docEl.setAttribute('data-quote-modal-open', '');
+      docEl.removeAttribute('data-quote-modal-restoring');
+    } else if (showQuoteModal && isClosingQuoteModal) {
+      docEl.removeAttribute('data-quote-modal-open');
+      docEl.setAttribute('data-quote-modal-restoring', '');
     } else {
       docEl.removeAttribute('data-quote-modal-open');
+      docEl.removeAttribute('data-quote-modal-restoring');
     }
 
     return () => {
       docEl.removeAttribute('data-quote-modal-open');
+      docEl.removeAttribute('data-quote-modal-restoring');
     };
-  }, [showQuoteModal]);
+  }, [showQuoteModal, isClosingQuoteModal]);
 
   const handleQuoteSubmit = (e) => {
     e.preventDefault();
