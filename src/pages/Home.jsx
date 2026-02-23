@@ -626,6 +626,7 @@ const Home = () => {
     const docEl = document.documentElement;
     const prefersReducedMotion =
       window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+    const closeFlipDurationMs = isMobileStack ? 520 : 980;
 
     if (lightboxNavRestoreRafRef.current) {
       cancelAnimationFrame(lightboxNavRestoreRafRef.current);
@@ -636,16 +637,19 @@ const Home = () => {
       lightboxNavRestoreTimerRef.current = null;
     }
 
-    if (prefersReducedMotion) {
-      lightboxNavRestoreActiveRef.current = false;
-      docEl.removeAttribute('data-lightbox-open');
-      docEl.removeAttribute('data-lightbox-restoring');
-      docEl.style.removeProperty('--starling-lightbox-nav-restore-duration');
-    } else {
+    const runNavRestore = () => {
+      if (prefersReducedMotion) {
+        lightboxNavRestoreActiveRef.current = false;
+        docEl.removeAttribute('data-lightbox-open');
+        docEl.removeAttribute('data-lightbox-restoring');
+        docEl.style.removeProperty('--starling-lightbox-nav-restore-duration');
+        return;
+      }
+
       // Restore real scroll position first so ScrollTrigger-driven nav styling doesn't "snap".
       restoreLightboxScrollLock();
 
-      const restoreDurationMs = isMobileStack ? 520 : 980;
+      const restoreDurationMs = isMobileStack ? closeFlipDurationMs : 980;
       docEl.style.setProperty('--starling-lightbox-nav-restore-duration', `${restoreDurationMs}ms`);
       docEl.setAttribute('data-lightbox-restoring', '');
       lightboxNavRestoreActiveRef.current = true;
@@ -668,7 +672,9 @@ const Home = () => {
           lightboxNavRestoreActiveRef.current = false;
         }, restoreDurationMs + 160);
       });
-    }
+    };
+
+    runNavRestore();
 
     const sourceRect = sourceEl?.getBoundingClientRect();
     const currentRect = imageWrap.getBoundingClientRect();
@@ -699,6 +705,9 @@ const Home = () => {
       const radiusTo = `${(lightboxSourceRadiusPx / scaleX).toFixed(3)}px / ${(
         lightboxSourceRadiusPx / scaleY
       ).toFixed(3)}px`;
+      const opacityEase = isMobileStack ? 'inCubic' : 'outQuad';
+      const backdropEase = isMobileStack ? 'inCubic' : 'inOutCubic';
+      const backdropDuration = isMobileStack ? closeFlipDurationMs : 900;
 
       tl.add(
         imageWrap,
@@ -708,7 +717,7 @@ const Home = () => {
           scaleX: [1, scaleX],
           scaleY: [1, scaleY],
           borderRadius: [lightboxOpenRadius, radiusTo],
-          duration: 980,
+          duration: isMobileStack ? closeFlipDurationMs : 980,
           ease: 'inOutCubic',
         },
         0,
@@ -718,8 +727,8 @@ const Home = () => {
         imageWrap,
         {
           opacity: [1, 0],
-          duration: 420,
-          ease: 'outQuad',
+          duration: isMobileStack ? closeFlipDurationMs : 420,
+          ease: opacityEase,
         },
         0,
       );
@@ -730,7 +739,7 @@ const Home = () => {
           {
             scaleX: [1, innerScaleX],
             scaleY: [1, innerScaleY],
-            duration: 980,
+            duration: isMobileStack ? closeFlipDurationMs : 980,
             ease: 'inOutCubic',
           },
           0,
@@ -741,8 +750,8 @@ const Home = () => {
         backdrop,
         {
           opacity: [1, 0],
-          duration: isMobileStack ? 250 : 900,
-          ease: 'inOutCubic',
+          duration: backdropDuration,
+          ease: backdropEase,
         },
         isMobileStack ? 0 : 80,
       );
@@ -750,13 +759,13 @@ const Home = () => {
       tl.add(imageWrap, {
         opacity: [1, 0],
         scale: [1, 0.94],
-        duration: 620,
+        duration: isMobileStack ? closeFlipDurationMs : 620,
         ease: 'inOutCubic',
       }, 0);
       tl.add(backdrop, {
         opacity: [1, 0],
-        duration: isMobileStack ? 250 : 620,
-        ease: 'inOutCubic',
+        duration: isMobileStack ? closeFlipDurationMs : 620,
+        ease: isMobileStack ? 'inCubic' : 'inOutCubic',
       }, 0);
     }
   }, [isMobileLandscape, isMobileStack, lightboxOpenRadius, lightboxSourceRadiusPx, restoreLightboxScrollLock]);
