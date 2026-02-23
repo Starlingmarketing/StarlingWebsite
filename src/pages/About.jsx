@@ -10,6 +10,30 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const useMediaQuery = (query) => {
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
+    return window.matchMedia(query).matches;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mql = window.matchMedia(query);
+    const onChange = (e) => setMatches(e.matches);
+
+    setMatches(mql.matches);
+    if (mql.addEventListener) mql.addEventListener('change', onChange);
+    else mql.addListener(onChange);
+
+    return () => {
+      if (mql.removeEventListener) mql.removeEventListener('change', onChange);
+      else mql.removeListener(onChange);
+    };
+  }, [query]);
+
+  return matches;
+};
+
 const About = () => {
   const aboutImage = cld.image('AF1I5294_gu67ej');
   const pageRef = useRef(null);
@@ -76,6 +100,9 @@ const About = () => {
   const [quoteForm, setQuoteForm] = useState({ phone: '' });
   const [quoteStatus, setQuoteStatus] = useState('idle');
   const [showStickyReachOut, setShowStickyReachOut] = useState(false);
+  const isMobileStack = useMediaQuery(
+    '(max-width: 767px), (orientation: landscape) and (max-height: 500px)',
+  );
 
   const closeQuoteModal = (isSlow = false) => {
     setIsClosingQuoteModal(isSlow ? 'slow' : 'fast');
@@ -301,22 +328,57 @@ const About = () => {
       {showQuoteModal && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center px-4"
-          style={{
-            animation: isClosingQuoteModal === 'slow'
-              ? 'lightboxOut 1.5s cubic-bezier(0.23,1,0.32,1) forwards'
-              : isClosingQuoteModal === 'fast'
-              ? 'lightboxOut 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
-              : 'lightboxIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
-          }}
+          style={
+            isMobileStack
+              ? undefined
+              : {
+                  animation:
+                    isClosingQuoteModal === 'slow'
+                      ? 'lightboxOut 1.5s cubic-bezier(0.23,1,0.32,1) forwards'
+                      : isClosingQuoteModal === 'fast'
+                        ? 'lightboxOut 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                        : 'lightboxIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                }
+          }
         >
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm md:bg-white/70 md:backdrop-blur-3xl"
+            className={
+              isMobileStack
+                ? 'absolute inset-0 starling-quote-backdrop'
+                : 'absolute inset-0 bg-black/40 backdrop-blur-sm md:bg-white/70 md:backdrop-blur-3xl'
+            }
             onClick={() => closeQuoteModal(false)}
+            style={
+              isMobileStack
+                ? {
+                    animation:
+                      isClosingQuoteModal === 'slow'
+                        ? 'starlingQuoteBackdropOut 1.5s cubic-bezier(0.23,1,0.32,1) both'
+                        : isClosingQuoteModal === 'fast'
+                          ? 'starlingQuoteBackdropOut 0.35s cubic-bezier(0.16, 1, 0.3, 1) both'
+                          : 'starlingQuoteBackdropIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both',
+                  }
+                : undefined
+            }
           />
 
           <div
-            className="relative z-10 w-full animate-fade-in"
+            className={
+              isMobileStack
+                ? 'relative z-10 w-full starling-quote-card'
+                : 'relative z-10 w-full animate-fade-in'
+            }
             style={{
+              ...(isMobileStack
+                ? {
+                    animation:
+                      isClosingQuoteModal === 'slow'
+                        ? 'starlingQuoteCardOut 1.5s cubic-bezier(0.23,1,0.32,1) both'
+                        : isClosingQuoteModal === 'fast'
+                          ? 'starlingQuoteCardOut 0.35s cubic-bezier(0.16, 1, 0.3, 1) both'
+                          : 'starlingQuoteCardIn 1s ease-out both',
+                  }
+                : null),
               maxWidth: 608,
               borderRadius: 22,
               backgroundColor: '#242424',

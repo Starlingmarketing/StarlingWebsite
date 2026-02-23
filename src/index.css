@@ -121,6 +121,62 @@
   to { opacity: 1; transform: scale(1); }
 }
 
+.starling-quote-backdrop {
+  --starling-quote-backdrop-bg: rgba(0, 0, 0, 0.4);
+  --starling-quote-backdrop-blur: 4px;
+  background-color: var(--starling-quote-backdrop-bg);
+  backdrop-filter: blur(var(--starling-quote-backdrop-blur)) saturate(1.05);
+  -webkit-backdrop-filter: blur(var(--starling-quote-backdrop-blur)) saturate(1.05);
+  will-change: background-color, backdrop-filter, -webkit-backdrop-filter;
+}
+
+@media (min-width: 768px) {
+  .starling-quote-backdrop {
+    --starling-quote-backdrop-bg: rgba(255, 255, 255, 0.7);
+    --starling-quote-backdrop-blur: 64px;
+  }
+}
+
+.starling-quote-card {
+  will-change: opacity, transform;
+}
+
+@keyframes starlingQuoteBackdropIn {
+  from {
+    background-color: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0px) saturate(1.05);
+    -webkit-backdrop-filter: blur(0px) saturate(1.05);
+  }
+  to {
+    background-color: var(--starling-quote-backdrop-bg);
+    backdrop-filter: blur(var(--starling-quote-backdrop-blur)) saturate(1.05);
+    -webkit-backdrop-filter: blur(var(--starling-quote-backdrop-blur)) saturate(1.05);
+  }
+}
+
+@keyframes starlingQuoteBackdropOut {
+  from {
+    background-color: var(--starling-quote-backdrop-bg);
+    backdrop-filter: blur(var(--starling-quote-backdrop-blur)) saturate(1.05);
+    -webkit-backdrop-filter: blur(var(--starling-quote-backdrop-blur)) saturate(1.05);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0px) saturate(1.05);
+    -webkit-backdrop-filter: blur(0px) saturate(1.05);
+  }
+}
+
+@keyframes starlingQuoteCardIn {
+  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.99); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes starlingQuoteCardOut {
+  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  to { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.99); }
+}
+
 .group:hover .hero-dots,
 .hero-dots:focus-within {
   pointer-events: auto;
