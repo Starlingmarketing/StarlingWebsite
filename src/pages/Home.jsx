@@ -573,6 +573,11 @@ const Home = () => {
     if (lightboxPhaseRef.current !== 'open') return;
     lightboxPhaseRef.current = 'closing';
 
+    const lightboxEl = document.querySelector('[data-starling-lightbox]');
+    if (lightboxEl) {
+      lightboxEl.style.pointerEvents = 'none';
+    }
+
     if (navAnimRef.current) {
       navAnimRef.current.revert();
       navAnimRef.current = null;

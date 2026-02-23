@@ -61,6 +61,14 @@
     animation-delay: calc(300ms + var(--starling-mobile-nav-item-delay, 0ms));
   }
 
+  nav[data-menu-open] .starling-mobile-nav-link:hover {
+    color: rgba(240, 240, 245, 0.95) !important;
+  }
+
+  nav[data-menu-open] [data-nav-toggle]:hover {
+    color: rgba(240, 240, 245, 0.95) !important;
+  }
+
   nav[data-menu-tinting] {
     transition: background-color 0.9s cubic-bezier(0.16, 1, 0.3, 1),
                 border-color 0.9s cubic-bezier(0.16, 1, 0.3, 1),

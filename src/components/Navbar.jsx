@@ -306,9 +306,10 @@ const Navbar = () => {
               data-nav-toggle
               className={`md:hidden z-50 relative w-11 h-11 -mr-2 grid place-items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 ${
                 isOpen
-                  ? 'text-white/70 hover:text-white focus-visible:ring-white/40'
+                  ? 'focus-visible:ring-white/40'
                   : 'text-slate-900 hover:text-slate-600 focus-visible:ring-slate-900/20'
               }`}
+              style={isOpen ? { color: 'rgba(240, 240, 245, 0.85)' } : undefined}
               onClick={() => setIsOpen((v) => !v)}
               aria-label={isOpen ? 'Close Menu' : 'Open Menu'}
               aria-expanded={isOpen}
@@ -355,10 +356,13 @@ const Navbar = () => {
                         }
                         setIsOpen(false);
                       }}
-                      style={{ '--starling-mobile-nav-item-delay': `${idx * 90}ms` }}
-                      className={`starling-mobile-nav-link font-inter text-[clamp(22px,5.5vw,26px)] leading-[1.12] font-medium tracking-tight transition-colors duration-200 ${
-                        activePath === link.path ? 'text-white' : 'text-white/70 hover:text-white'
-                      }`}
+                      style={{
+                        '--starling-mobile-nav-item-delay': `${idx * 90}ms`,
+                        color: activePath === link.path
+                          ? 'rgba(240, 240, 245, 0.95)'
+                          : 'rgba(220, 220, 230, 0.55)',
+                      }}
+                      className="starling-mobile-nav-link font-inter text-[length:clamp(22px,5.5vw,26px)] leading-[1.12] font-medium tracking-tight transition-colors duration-200"
                     >
                       {link.name}
                     </Link>
