@@ -8,6 +8,7 @@ import {
   REVIEW_GRID_TOTAL,
 } from '../pages/Booking';
 import { NavOverrideContext } from '../contexts/NavContext';
+import { supabase } from '../utils/supabase';
 
 const useMediaQuery = (query) => {
   const [matches, setMatches] = useState(() => {
@@ -221,22 +222,35 @@ const ScrollBookingReveal = ({ sectionRef: externalSectionRef } = {}) => {
         formatField(formData.message),
       ].join('\n');
 
-      emailjs
-        .send(
-          import.meta.env.VITE_EMAILJS_SERVICE_ID,
-          import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-          {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            date: formData.date,
-            time: new Date().toLocaleString(),
-            location: formData.location,
-            message: inquiryBody,
-            reply_to: formData.email,
-          },
-          import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
-        )
+      const emailPromise = emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          date: formData.date,
+          time: new Date().toLocaleString(),
+          location: formData.location,
+          message: inquiryBody,
+          reply_to: formData.email,
+        },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+      );
+
+      supabase.from('inquiries').insert({
+        type: 'booking',
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        event_date: formData.date,
+        location: formData.location,
+        message: formData.message,
+      }).then(({ error }) => {
+        if (error) console.error('Supabase insert error:', error);
+      });
+
+      emailPromise
         .then(() => {
           setStatus('success');
           setFormData({

@@ -4,6 +4,7 @@ import emailjs from '@emailjs/browser';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { cld } from '../utils/cloudinary';
+import { supabase } from '../utils/supabase';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -1154,22 +1155,35 @@ const Booking = () => {
 
     const inquiryBody = buildInquiryBody(formData);
 
-    emailjs
-      .send(
-        import.meta.env.VITE_EMAILJS_SERVICE_ID,
-        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-        {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          date: formData.date,
-          time: new Date().toLocaleString(),
-          location: formData.location,
-          message: inquiryBody,
-          reply_to: formData.email,
-        },
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
-      )
+    const emailPromise = emailjs.send(
+      import.meta.env.VITE_EMAILJS_SERVICE_ID,
+      import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+      {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        date: formData.date,
+        time: new Date().toLocaleString(),
+        location: formData.location,
+        message: inquiryBody,
+        reply_to: formData.email,
+      },
+      import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+    );
+
+    supabase.from('inquiries').insert({
+      type: 'booking',
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      event_date: formData.date,
+      location: formData.location,
+      message: formData.message,
+    }).then(({ error }) => {
+      if (error) console.error('Supabase insert error:', error);
+    });
+
+    emailPromise
       .then(() => {
         setStatus('success');
         setFormData({ name: '', email: '', phone: '', date: '', location: '', message: '' });

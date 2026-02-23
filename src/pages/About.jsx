@@ -4,6 +4,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import { cld } from '../utils/cloudinary';
 import { useEffect, useRef, useState } from 'react';
 import emailjs from '@emailjs/browser';
+import { supabase } from '../utils/supabase';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -89,23 +90,32 @@ const About = () => {
   const handleQuoteSubmit = (e) => {
     e.preventDefault();
     setQuoteStatus('sending');
-    
-    emailjs
-      .send(
-        import.meta.env.VITE_EMAILJS_SERVICE_ID,
-        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-        {
-          name: 'Quick Quote Request',
-          email: 'quote@request.com',
-          phone: quoteForm.phone,
-          date: '',
-          time: new Date().toLocaleString(),
-          location: '',
-          message: `Quick quote request.\nPhone: ${quoteForm.phone}`,
-          reply_to: 'quote@request.com',
-        },
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
-      )
+
+    const emailPromise = emailjs.send(
+      import.meta.env.VITE_EMAILJS_SERVICE_ID,
+      import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+      {
+        name: 'Quick Quote Request',
+        email: 'quote@request.com',
+        phone: quoteForm.phone,
+        date: '',
+        time: new Date().toLocaleString(),
+        location: '',
+        message: `Quick quote request.\nPhone: ${quoteForm.phone}`,
+        reply_to: 'quote@request.com',
+      },
+      import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+    );
+
+    supabase.from('inquiries').insert({
+      type: 'quick_quote',
+      name: 'Quick Quote Request',
+      phone: quoteForm.phone,
+    }).then(({ error }) => {
+      if (error) console.error('Supabase insert error:', error);
+    });
+
+    emailPromise
       .then(() => {
         setQuoteStatus('success');
         setTimeout(() => {
