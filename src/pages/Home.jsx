@@ -29,13 +29,9 @@ const WEDDING_1_IMAGE_IDS = [
   'Molly_Fleming_Select_Edits_-013_madlt2',
   'Molly_Fleming_Select_Edits_-015_oki1n0',
   'Molly_Fleming_Additional_Edits_-0192_ghi9rs',
-  'Molly_Fleming_Additional_Edits_-0199_mdyby1',
-  'Molly_Fleming_Select_Edits_-005_dedene',
-  'Molly_Fleming_Additional_Edits_-0149_jbt3yz',
-  'Molly_Fleming_Additional_Edits_-0115_rs0fgh',
-  'Molly_Fleming_Additional_Edits_-0130_cbdtdm',
   'Molly_Fleming_Select_Edits_-016_yapfgd',
-  'Molly_Fleming_Additional_Edits_-0037_ns4q15',
+  'Molly_Fleming_Additional_Edits_-0115_rs0fgh',
+  'Molly_Fleming_Additional_Edits_-0149_jbt3yz',
 ];
 
 const WEDDING_2_IMAGE_IDS = [
@@ -62,10 +58,6 @@ const WEDDING_3_IMAGE_IDS = [
   'Neeshay_White_Select_Edits_-003_shgp50',
   'Neeshay_White_Select_Edits_-006_yhjwc1',
   'Neeshay_White_Select_Edits_-001_lge9tl',
-  'Neeshay_White_Select_Edits_-011_e2ltny',
-  'Neeshay_White_Select_Edits_-004_h0kuuk',
-  'Neeshay_White_Select_Edits_-021_he6xih',
-  'Neeshay_White_Select_Edits_-018_maz1x5',
 ];
 
 const ASSORTED_IMAGE_IDS = [
@@ -1570,7 +1562,7 @@ const Home = () => {
             {/* Gallery 3 - Neeshay */}
             <div>
               <div ref={wedding3HeaderRef} className="mb-8 text-center">
-                <h3 className="text-xl md:text-2xl font-serif text-slate-900 mb-2 md:mb-3">Neeshay</h3>
+                <h3 className="text-xl md:text-2xl font-serif text-slate-900 mb-2 md:mb-3">Neeshay White</h3>
                 <p className="text-[10px] md:text-[11px] text-slate-400 font-serif uppercase tracking-widest whitespace-normal break-words max-w-full">
                   Ardmore, Pennsylvania
                 </p>
