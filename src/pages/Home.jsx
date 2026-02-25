@@ -57,6 +57,17 @@ const WEDDING_2_IMAGE_IDS = [
   '0016__DSC4459-topaz-denoise-denoise_DxO_cjqihn',
 ];
 
+const WEDDING_3_IMAGE_IDS = [
+  'Neeshay_White_Select_Edits_-008_ldxv2v',
+  'Neeshay_White_Select_Edits_-003_shgp50',
+  'Neeshay_White_Select_Edits_-006_yhjwc1',
+  'Neeshay_White_Select_Edits_-001_lge9tl',
+  'Neeshay_White_Select_Edits_-011_e2ltny',
+  'Neeshay_White_Select_Edits_-004_h0kuuk',
+  'Neeshay_White_Select_Edits_-021_he6xih',
+  'Neeshay_White_Select_Edits_-018_maz1x5',
+];
+
 const ASSORTED_IMAGE_IDS = [
   'AF1I2242-Edit-2_cor6p9',
   'AF1I7015_2_hp56wr',
@@ -387,10 +398,12 @@ const Home = () => {
 
   const wedding2GridRef = useStaggerReveal(renderFeatured);
   const wedding1GridRef = useStaggerReveal(renderFeatured);
+  const wedding3GridRef = useStaggerReveal(renderFeatured);
   const assortedGridRef = useStaggerReveal(renderSelected);
 
   const wedding2HeaderRef = useReveal(renderFeatured);
   const wedding1HeaderRef = useReveal(renderFeatured);
+  const wedding3HeaderRef = useReveal(renderFeatured);
   const selectedDividerRef = useReveal(renderSelected);
 
   const heroImages = useMemo(
@@ -412,6 +425,17 @@ const Home = () => {
   const wedding1Images = useMemo(() => {
     if (!renderFeatured) return [];
     return WEDDING_1_IMAGE_IDS.map((publicId) => ({
+      id: publicId,
+      publicId,
+      cldImg: buildOptimizedImage(publicId, 1600),
+      aspectRatio: 'aspect-[4/3]',
+      className: isMobileLandscape ? 'md:col-span-3 lg:col-span-3' : 'md:col-span-6 lg:col-span-3',
+    }));
+  }, [renderFeatured, isMobileLandscape]);
+
+  const wedding3Images = useMemo(() => {
+    if (!renderFeatured) return [];
+    return WEDDING_3_IMAGE_IDS.map((publicId) => ({
       id: publicId,
       publicId,
       cldImg: buildOptimizedImage(publicId, 1600),
@@ -1533,6 +1557,44 @@ const Home = () => {
                         publicId={img.publicId}
                         cldImg={img.cldImg}
                         alt={`Molly and Brandon photo ${i + 1}`}
+                        loading="lazy"
+                        decoding="async"
+                        imgClassName="object-cover"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Gallery 3 - Neeshay */}
+            <div>
+              <div ref={wedding3HeaderRef} className="mb-8 text-center">
+                <h3 className="text-xl md:text-2xl font-serif text-slate-900 mb-2 md:mb-3">Neeshay</h3>
+                <p className="text-[10px] md:text-[11px] text-slate-400 font-serif uppercase tracking-widest whitespace-normal break-words max-w-full">
+                  Ardmore, Pennsylvania
+                </p>
+              </div>
+              <div
+                ref={wedding3GridRef}
+                className="home-gallery-grid group/gallery grid grid-cols-2 md:grid-cols-12 gap-2 md:gap-8 items-start"
+              >
+                {wedding3Images.map((img, i) => (
+                  <div 
+                    key={img.id} 
+                    className={`home-gallery-card relative group cursor-pointer rounded-[4px] md:rounded-[8px] transition-[filter] duration-500 group-hover/gallery:brightness-[0.85] hover:!brightness-100 ${img.className}`} 
+                    onClick={(e) => openLightbox(wedding3Images, i, e)}
+                    onMouseEnter={handleCardEnter}
+                    onMouseLeave={handleCardLeave}
+                  >
+                    <div
+                      data-gallery-card-inner="true"
+                      className={`w-full bg-slate-50 ${img.aspectRatio} relative overflow-hidden rounded-[4px] md:rounded-[8px] shadow-xl shadow-slate-200/50`}
+                    >
+                      <ProgressiveCldImage
+                        publicId={img.publicId}
+                        cldImg={img.cldImg}
+                        alt={`Neeshay photo ${i + 1}`}
                         loading="lazy"
                         decoding="async"
                         imgClassName="object-cover"
