@@ -428,7 +428,7 @@ const CinematicReviewCard = ({ review }) => {
             <img
               src={cld.image(review.avatar).toURL()}
               alt={review?.name ?? 'Review'}
-              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+              className="w-8 h-8 object-contain flex-shrink-0"
             />
           ) : (
             <div
