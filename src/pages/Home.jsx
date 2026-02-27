@@ -1383,8 +1383,8 @@ const Home = () => {
                 </div>
               </div>
               <h1 className="hero-intro-item order-1 lg:order-none text-[22px] sm:text-[26px] md:text-[26px] lg:text-[28px] xl:text-[34px] max-[360px]:text-[19px] font-serif uppercase text-slate-900 leading-[1.1] tracking-normal mb-2 lg:mb-10">
-                <div className="overflow-hidden"><div className="hero-text-line whitespace-nowrap">Unscripted Moments.</div></div>
-                <div className="overflow-hidden"><div className="hero-text-line whitespace-nowrap">Unforgettable Memories.</div></div>
+                <div className="hero-text-line whitespace-nowrap pr-2">Unscripted Moments.</div>
+                <div className="hero-text-line whitespace-nowrap pr-2">Unforgettable Memories.</div>
               </h1>
               <p className="hero-intro-item order-3 lg:order-none hero-desc text-sm md:text-base text-slate-600 font-light lg:mb-8 max-w-md leading-relaxed">
                 Premium photography for weddings, editorials, and lifestyle. Based in Philadelphia and NYC, traveling worldwide.
