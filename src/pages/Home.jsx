@@ -409,7 +409,7 @@ const Home = () => {
   const clampNumber = (min, value, max) => Math.min(max, Math.max(min, value));
 
   const stackOffsetX = useMemo(() => {
-    const width = stackWidth ?? (isMobileStack ? 360 : 637);
+    const width = stackWidth ?? (isMobileStack ? 360 : 900);
     const ratio = isMobileStack ? 0.07 : 0.088; // match existing look at default sizes, compress on narrow widths
     const min = isMobileStack ? 10 : 18;
     const max = isMobileStack ? STACK_OFFSET_MOBILE_X : STACK_OFFSET_DESKTOP_X;
@@ -417,7 +417,7 @@ const Home = () => {
   }, [stackWidth, isMobileStack]);
 
   const stackOffsetY = useMemo(() => {
-    const width = stackWidth ?? (isMobileStack ? 360 : 637);
+    const width = stackWidth ?? (isMobileStack ? 360 : 900);
     const ratio = isMobileStack ? 0.045 : 0.06;
     const min = isMobileStack ? 7 : 12;
     const max = isMobileStack ? STACK_OFFSET_MOBILE_Y : STACK_OFFSET_DESKTOP_Y;
@@ -1327,6 +1327,15 @@ const Home = () => {
   return (
     <div ref={container} className="relative w-full">
       <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 -top-24 z-0 h-[120vh] max-h-[1200px]"
+        style={{
+          background: 'radial-gradient(90.91% 59.44% at 49.04% 47.15%, #D0E8FF 0%, #F5F5F7 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%)',
+          maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%)',
+        }}
+      />
+      <div
         ref={reviewsBackdropRef}
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0"
@@ -1397,39 +1406,41 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="hero-primary-layout flex flex-col md:flex-row md:items-center md:justify-between">
+          <div className="hero-primary-layout relative flex flex-col md:block px-4 md:px-12 w-full">
           
-            {/* Text Content */}
-            <div className="hero-text-col contents md:flex md:flex-col md:w-5/12 md:order-1 md:justify-center md:z-10">
-              <div className="hero-eyebrow hero-intro-item hidden md:flex w-fit items-center justify-center md:gap-2 xl:gap-4 -mt-2 pl-1.5 md:pr-3 xl:pr-4 md:py-1 xl:py-1.5 rounded-full bg-white border border-slate-200/80">
-                <div className="flex items-center bg-[#F8F9FA] rounded-full md:px-2 xl:px-3 md:py-1 xl:py-1.5 border border-slate-100/50">
-                  <div className="flex items-center md:gap-1.5 xl:gap-2.5">
+            {/* Text Content Box */}
+            <div 
+              className="hero-text-col relative z-20 flex flex-col justify-center order-1 md:absolute md:left-12 md:top-1/2 md:-translate-y-1/2 w-full md:w-[480px] lg:w-[604px] md:h-[318px] bg-[#F7F7F7]/85 md:backdrop-blur-md rounded-[22px] px-6 md:px-[42px] py-8 md:pt-[30px] md:pb-[26px] mb-8 md:mb-0 shadow-lg md:shadow-2xl md:shadow-black/5"
+            >
+              <div className="hero-eyebrow hero-intro-item hidden md:flex w-fit items-center justify-center md:gap-2 xl:gap-3 pl-1.5 md:pr-3 xl:pr-4 md:py-1 xl:py-1.5 rounded-full bg-white border border-slate-200/80 mb-2">
+                <div className="flex items-center bg-[#F8F9FA] rounded-full md:px-2 xl:px-2 md:py-1 xl:py-1 border border-slate-100/50">
+                  <div className="flex items-center md:gap-1.5 xl:gap-2">
                     {/* Google */}
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="md:w-[12px] md:h-[12px] xl:w-[15px] xl:h-[15px] flex-shrink-0">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="md:w-[12px] md:h-[12px] xl:w-[14px] xl:h-[14px] flex-shrink-0">
                       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                       <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                     </svg>
                     {/* Yelp */}
-                    <svg viewBox="0 0 384 512" fill="#FF1A1A" className="md:w-[12px] md:h-[12px] xl:w-[15px] xl:h-[15px] flex-shrink-0">
+                    <svg viewBox="0 0 384 512" fill="#FF1A1A" className="md:w-[12px] md:h-[12px] xl:w-[14px] xl:h-[14px] flex-shrink-0">
                       <path d="M42.9 240.32l99.62 48.61c19.2 9.4 16.2 37.51-4.5 42.71L30.5 358.45a22.79 22.79 0 0 1-28.21-19.6 197.16 197.16 0 0 1 9-85.32 22.8 22.8 0 0 1 31.61-13.21zm44 239.25a199.45 199.45 0 0 0 79.42 32.11A22.78 22.78 0 0 0 192.94 490l3.9-110.82c.7-21.3-25.5-31.91-39.81-16.1l-74.21 82.4a22.82 22.82 0 0 0 4.09 34.09zm145.34-109.92l58.81 94a22.93 22.93 0 0 0 34 5.5 198.36 198.36 0 0 0 52.71-67.61A23 23 0 0 0 364.17 370l-105.42-34.26c-20.31-6.5-37.81 15.8-26.51 33.91zm148.33-132.23a197.44 197.44 0 0 0-50.41-69.31 22.85 22.85 0 0 0-34 4.4l-62 91.92c-11.9 17.7 4.7 40.61 25.2 34.71L366 268.63a23 23 0 0 0 14.61-31.21zM62.11 30.18a22.86 22.86 0 0 0-9.9 32l104.12 180.44c11.7 20.2 42.61 11.9 42.61-11.4V22.88a22.67 22.67 0 0 0-24.5-22.8 320.37 320.37 0 0 0-112.33 30.1z"/>
                     </svg>
                     {/* WeddingWire */}
-                    <img src="https://www.google.com/s2/favicons?domain=weddingwire.com&sz=128" alt="WeddingWire" className="md:w-[12px] md:h-[12px] xl:w-[15px] xl:h-[15px] object-contain flex-shrink-0 rounded-[3px] opacity-90" />
+                    <img src="https://www.google.com/s2/favicons?domain=weddingwire.com&sz=128" alt="WeddingWire" className="md:w-[12px] md:h-[12px] xl:w-[14px] xl:h-[14px] object-contain flex-shrink-0 rounded-[3px] opacity-90" />
                     {/* Thumbtack */}
-                    <img src="https://www.google.com/s2/favicons?domain=thumbtack.com&sz=128" alt="Thumbtack" className="md:w-[12px] md:h-[12px] xl:w-[15px] xl:h-[15px] object-contain flex-shrink-0 rounded-[3px] opacity-90" />
+                    <img src="https://www.google.com/s2/favicons?domain=thumbtack.com&sz=128" alt="Thumbtack" className="md:w-[12px] md:h-[12px] xl:w-[14px] xl:h-[14px] object-contain flex-shrink-0 rounded-[3px] opacity-90" />
                   </div>
                 </div>
                 
-                <div className="flex items-center md:gap-2 xl:gap-3">
-                  <span className="md:text-[12px] xl:text-[14px] font-medium text-slate-700 tracking-wide whitespace-nowrap">1.2K+ Reviews</span>
-                  <div className="w-[1px] md:h-3 xl:h-4 bg-slate-200"></div>
-                  <div className="flex items-center md:gap-1.5 xl:gap-2">
-                    <span className="md:text-[12px] xl:text-[14px] font-semibold text-slate-800 whitespace-nowrap">4.8/5</span>
+                <div className="flex items-center md:gap-2 xl:gap-2.5">
+                  <span className="md:text-[11px] xl:text-[12px] font-semibold text-[#18181B] tracking-wide whitespace-nowrap">1.2K+ Reviews</span>
+                  <div className="w-[1px] md:h-3 xl:h-3 bg-slate-300"></div>
+                  <div className="flex items-center md:gap-1.5 xl:gap-1.5">
+                    <span className="md:text-[11px] xl:text-[12px] font-semibold text-[#18181B] whitespace-nowrap">4.8/5</span>
                     <div className="flex items-center gap-0.5">
                       {[...Array(5)].map((_, i) => (
-                        <svg key={i} className="md:w-[12px] md:h-[12px] xl:w-[14px] xl:h-[14px] text-[#FBBC05] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg key={i} className="md:w-[11px] md:h-[11px] xl:w-[12px] xl:h-[12px] text-[#FBBC05] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
                       ))}
@@ -1437,27 +1448,27 @@ const Home = () => {
                   </div>
                 </div>
               </div>
-              <h1 className="hero-intro-item order-1 md:order-none font-serif uppercase text-slate-900 leading-[1.1] tracking-normal">
-                <div className="hero-text-line whitespace-nowrap pr-2">Unscripted Moments.</div>
-                <div className="hero-text-line whitespace-nowrap pr-2">Unforgettable Memories.</div>
+              <h1 className="hero-intro-item font-serif text-[36px] md:text-[40px] lg:text-[44px] text-[#18181B] leading-[1.02] tracking-normal mb-1 md:mb-1">
+                <div className="hero-text-line whitespace-nowrap">Unscripted Moments.</div>
+                <div className="hero-text-line whitespace-nowrap">Unforgettable Memories.</div>
               </h1>
-              <p className="hero-intro-item order-3 md:order-none hero-desc text-slate-600 font-light max-w-md leading-relaxed">
+              <p className="hero-intro-item hero-desc text-[#4A4A52] font-light text-[15px] md:text-[14px] max-w-sm leading-[1.45] md:leading-[1.32] mb-3 md:mb-2">
                 Premium photography for weddings, editorials, and lifestyle. Based in Philadelphia and NYC, traveling worldwide.
               </p>
               <button
                 ref={heroReachOutButtonRef}
                 onClick={() => setShowQuoteModal(true)}
-                className="hero-intro-item order-4 md:order-none self-center md:self-start hero-link group inline-flex items-center justify-center gap-1.5 w-[130px] h-[30px] sm:w-[112px] sm:h-[24px] bg-[#242424] text-white rounded-[17px] text-[13px] sm:text-[12px] font-normal hover:bg-black transition-colors"
+                className="hero-intro-item hero-link group inline-flex items-center justify-center gap-1.5 w-[112px] h-[30px] bg-[#18181B] text-white rounded-full text-[13px] font-normal hover:bg-black transition-colors"
               >
                 <span>Reach Out</span>
-                <ArrowRight size={14} strokeWidth={1.5} className="group-hover:translate-x-1 transition-transform duration-300" />
+                <ArrowRight size={13} strokeWidth={1.5} className="group-hover:translate-x-1 transition-transform duration-300" />
               </button>
             </div>
           
-          {/* Staggered Image Stack */}
-          <div className="hero-stack-col hero-intro-item w-full md:w-6/12 order-2 md:order-2 md:py-6 flex items-center justify-center relative group">
-            <div
-              className="hero-stack-wrapper relative w-full md:w-[637px]"
+            {/* Staggered Image Stack */}
+            <div className="hero-stack-col hero-intro-item w-full order-2 md:ml-auto md:w-[600px] lg:w-[900px] flex items-center justify-end relative group py-8 md:py-16">
+              <div
+                className="hero-stack-wrapper relative w-full md:w-[600px] lg:w-[900px]"
               ref={stackRef}
               style={{
                 aspectRatio: '637 / 426',
