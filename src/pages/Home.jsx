@@ -380,10 +380,16 @@ const Home = () => {
   const [viewportWidth, setViewportWidth] = useState(() =>
     (typeof window === 'undefined' ? 1440 : window.innerWidth)
   );
+  const [viewportHeight, setViewportHeight] = useState(() =>
+    (typeof window === 'undefined' ? 900 : window.innerHeight)
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
-    const handleResize = () => setViewportWidth(window.innerWidth);
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+      setViewportHeight(window.innerHeight);
+    };
     handleResize();
     window.addEventListener('resize', handleResize, { passive: true });
     return () => window.removeEventListener('resize', handleResize);
@@ -433,6 +439,31 @@ const Home = () => {
     const eased = t * t * (3 - 2 * t); // smoothstep
     return Math.round(36 + stackOffsetX * (0.75 + 1.0 * eased));
   }, [isMobileStack, viewportWidth, stackOffsetX]);
+
+  const heroScale = useMemo(() => {
+    if (isMobileStack) return 1;
+    const refW = 1920;
+    const refH = 1080;
+    const w = typeof viewportWidth === 'number' ? viewportWidth : refW;
+    const h = typeof viewportHeight === 'number' ? viewportHeight : refH;
+    if (w >= refW && h >= refH) return 1;
+    const raw = Math.min(w / refW, h / refH);
+    return Math.max(0.85, 1 - (1 - raw) * 0.5);
+  }, [isMobileStack, viewportWidth, viewportHeight]);
+
+  const heroLayoutRef = useRef(null);
+  const [heroNaturalHeight, setHeroNaturalHeight] = useState(0);
+
+  useEffect(() => {
+    if (isMobileStack) return undefined;
+    const el = heroLayoutRef.current;
+    if (!el) return undefined;
+    const ro = new ResizeObserver(([entry]) => {
+      setHeroNaturalHeight(entry.contentRect.height);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isMobileStack]);
 
   const container = useRef(null);
   const heroReachOutButtonRef = useRef(null);
@@ -1364,7 +1395,7 @@ const Home = () => {
       </div>
       <div className="relative z-10">
         {/* Hero Section - Framed Premium Layout */}
-        <section id="home-hero" className="relative w-full pt-4 md:pt-24 pb-8 max-w-[1440px] mx-auto min-h-[50vh] lg:min-h-[50vh] flex flex-col justify-center">
+        <section id="home-hero" className="relative w-full pt-0 md:pt-0 pb-8 max-w-[1440px] mx-auto min-h-[50vh] lg:min-h-[50vh] flex flex-col justify-center">
           {/* Mobile-only: compact reviews eyebrow above image stack */}
           <div className="hero-mobile-eyebrow-row hero-intro-item md:hidden flex justify-center mb-9 -mt-2">
             <div className="hero-eyebrow max-w-full inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1 rounded-full bg-white border border-slate-200/80 leading-none">
@@ -1405,7 +1436,20 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="hero-primary-layout relative flex flex-col md:block px-4 md:px-12 w-full">
+          <div
+            style={!isMobileStack && heroScale < 1 && heroNaturalHeight > 0 ? {
+              height: heroNaturalHeight * heroScale,
+              position: 'relative',
+            } : undefined}
+          >
+            <div
+              ref={heroLayoutRef}
+              className="hero-primary-layout relative flex flex-col md:block px-4 md:px-12 w-full"
+              style={!isMobileStack && heroScale < 1 ? {
+                transform: `scale(${heroScale})`,
+                transformOrigin: 'top center',
+              } : undefined}
+            >
           
             {/* Text Content Box */}
             <div 
@@ -1575,6 +1619,7 @@ const Home = () => {
             </div>
           </div>
 
+        </div>
         </div>
       </section>
 
