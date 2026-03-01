@@ -69,8 +69,8 @@ const ASSORTED_IMAGE_IDS = [
 
 const STACK_OFFSET_DESKTOP_X = 44;
 const STACK_OFFSET_DESKTOP_Y = 32;
-const STACK_OFFSET_MOBILE_X = 20;
-const STACK_OFFSET_MOBILE_Y = 14;
+const STACK_OFFSET_MOBILE_X = 24;
+const STACK_OFFSET_MOBILE_Y = 16;
 const STACK_COUNT = 3;
 const CARD_SHADOWS = ['none', 'none', 'none'];
 const LIGHTBOX_RADIUS_PX = 0;
@@ -422,16 +422,16 @@ const Home = () => {
 
   const stackOffsetX = useMemo(() => {
     const width = stackWidth ?? (isMobileStack ? 360 : 900);
-    const ratio = isMobileStack ? 0.058 : 0.07;
-    const min = isMobileStack ? 9 : 16;
+    const ratio = isMobileStack ? 0.07 : 0.07;
+    const min = isMobileStack ? 10 : 16;
     const max = isMobileStack ? STACK_OFFSET_MOBILE_X : STACK_OFFSET_DESKTOP_X;
     return Math.round(clampNumber(min, width * ratio, max));
   }, [stackWidth, isMobileStack]);
 
   const stackOffsetY = useMemo(() => {
     const width = stackWidth ?? (isMobileStack ? 360 : 900);
-    const ratio = isMobileStack ? 0.04 : 0.05;
-    const min = isMobileStack ? 6 : 10;
+    const ratio = isMobileStack ? 0.045 : 0.05;
+    const min = isMobileStack ? 7 : 10;
     const max = isMobileStack ? STACK_OFFSET_MOBILE_Y : STACK_OFFSET_DESKTOP_Y;
     return Math.round(clampNumber(min, width * ratio, max));
   }, [stackWidth, isMobileStack]);
@@ -1365,7 +1365,7 @@ const Home = () => {
     <div ref={container} className="relative w-full">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 -top-24 z-0 h-[120vh] max-h-[1200px]"
+        className="pointer-events-none absolute inset-x-0 -top-24 z-0 h-[120vh] max-h-[1200px] hidden md:block"
         style={{
           background: 'radial-gradient(70% 65% at 65% 30%, #D0E8FF 0%, #EDF3FA 45%, #FFFFFF 100%)',
           WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%)',
@@ -1401,9 +1401,9 @@ const Home = () => {
       </div>
       <div className="relative z-10">
         {/* Hero Section - Framed Premium Layout */}
-        <section id="home-hero" className="relative w-full pt-0 md:pt-0 pb-8 max-w-[1440px] mx-auto min-h-[50vh] lg:min-h-[50vh] flex flex-col justify-center">
+        <section id="home-hero" className="relative w-full pt-5 md:pt-0 pb-8 max-w-[1440px] mx-auto min-h-[50vh] lg:min-h-[50vh] flex flex-col justify-center">
           {/* Mobile-only: compact reviews eyebrow above image stack */}
-          <div className="hero-mobile-eyebrow-row hero-intro-item md:hidden flex justify-center mb-9 -mt-2">
+          <div className="hero-mobile-eyebrow-row hero-intro-item md:hidden flex justify-center mb-11 -mt-2">
             <div className="hero-eyebrow max-w-full inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1 rounded-full bg-white border border-slate-200/80 leading-none">
               <div className="flex items-center bg-[#F8F9FA] rounded-full px-2 py-1 border border-slate-100/50">
                 <div className="flex items-center gap-1.5">
@@ -1450,7 +1450,7 @@ const Home = () => {
           >
             <div
               ref={heroLayoutRef}
-              className="hero-primary-layout relative flex flex-col md:block px-4 md:px-12 w-full"
+              className="hero-primary-layout relative flex flex-col md:block md:px-12 w-full"
               style={!isMobileStack && heroScale < 1 ? {
                 transform: `scale(${heroScale})`,
                 transformOrigin: 'top center',
@@ -1459,7 +1459,7 @@ const Home = () => {
           
             {/* Text Content Box */}
             <div 
-              className="hero-text-col relative z-20 flex flex-col justify-center md:justify-start items-center order-1 md:absolute md:-left-[64px] lg:-left-[128px] xl:-left-[176px] md:top-1/2 md:-translate-y-1/2 w-full md:w-[480px] lg:w-[604px] md:h-[318px] bg-white/[0.97] rounded-[22px] px-6 md:px-[42px] py-8 md:pt-[17px] md:pb-[47px] mb-8 md:mb-0"
+              className="hero-text-col contents md:z-20 md:flex md:flex-col md:justify-start md:items-center md:absolute md:-left-[64px] lg:-left-[128px] xl:-left-[176px] md:top-1/2 md:-translate-y-1/2 md:w-[480px] lg:w-[604px] md:h-[318px] md:bg-white/[0.97] md:rounded-[22px] md:px-[42px] md:pt-[17px] md:pb-[47px]"
             >
               <div className="hero-eyebrow hero-intro-item hidden md:flex w-fit items-center justify-center md:gap-2 xl:gap-3 pl-1.5 md:pr-3 xl:pr-4 md:py-1 xl:py-1.5 rounded-full bg-white border border-slate-200/80 mb-4">
                 <div className="flex items-center bg-[#F8F9FA] rounded-full md:px-2 xl:px-2 md:py-1 xl:py-1 border border-slate-100/50">
@@ -1497,12 +1497,12 @@ const Home = () => {
                   </div>
                 </div>
               </div>
-              <div className="text-left md:w-full md:flex md:flex-col md:flex-1">
-                <h1 className="hero-intro-item font-serif text-[44px] md:text-[54px] lg:text-[62px] text-[#18181B] leading-[1.02] tracking-normal mb-4 md:mb-5">
+              <div className="contents md:flex md:flex-col md:flex-1 md:w-full text-left">
+                <h1 className="hero-intro-item order-1 md:order-none font-serif uppercase md:normal-case text-[44px] md:text-[54px] lg:text-[62px] text-[#18181B] leading-[1.02] tracking-normal mb-4 md:mb-5">
                   <div className="hero-text-line whitespace-nowrap">Unscripted Moments.</div>
                   <div className="hero-text-line whitespace-nowrap">Unforgettable Memories.</div>
                 </h1>
-                <div className="max-w-[386px] md:mx-auto md:flex md:flex-col md:flex-1">
+                <div className="order-3 md:order-none w-full max-w-[386px] md:mx-auto md:flex md:flex-col md:flex-1">
                   <p className="hero-intro-item hero-desc text-[#6B6B76] font-light text-[13px] leading-[1.5] md:leading-[1.5] mb-5 md:mb-5">
                     Premium photography for weddings, editorials, and lifestyle. Based in Philadelphia and NYC, traveling worldwide.
                   </p>
@@ -1510,7 +1510,7 @@ const Home = () => {
                     ref={heroReachOutButtonRef}
                     data-hero-reach-out
                     onClick={() => setShowQuoteModal(true)}
-                    className="hero-intro-item hero-link group inline-flex items-center justify-center gap-1.5 w-[112px] h-[24px] bg-[#18181B] text-white rounded-full text-[13px] font-normal hover:bg-black transition-colors md:mt-auto"
+                    className="hero-intro-item hero-link group flex md:inline-flex items-center justify-center gap-1.5 w-[130px] h-[30px] sm:w-[112px] sm:h-[24px] bg-[#18181B] text-white rounded-full text-[13px] font-normal hover:bg-black transition-colors md:mt-auto mx-auto md:mx-0"
                   >
                     <span>Reach Out</span>
                     <ArrowRight size={13} strokeWidth={1.5} className="group-hover:translate-x-1 transition-transform duration-300" />
@@ -1520,7 +1520,7 @@ const Home = () => {
             </div>
           
             {/* Staggered Image Stack */}
-            <div className="hero-stack-col hero-intro-item w-full order-2 md:ml-auto md:mr-[-8px] lg:mr-[-24px] md:w-[600px] lg:w-[900px] flex items-center justify-end relative group py-8 md:py-16">
+            <div className="hero-stack-col hero-intro-item w-full order-2 md:ml-auto md:mr-[-8px] lg:mr-[-24px] md:w-[600px] lg:w-[900px] flex items-center justify-end relative group md:py-16">
               <div
                 className="hero-stack-wrapper relative w-full md:w-[600px] lg:w-[900px]"
               ref={stackRef}
