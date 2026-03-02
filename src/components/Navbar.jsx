@@ -301,7 +301,7 @@ const Navbar = () => {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent('starling:open-quote'))}
-              className="w-[179px] text-xs uppercase tracking-widest text-black transition-colors duration-300 cursor-pointer text-center pointer-events-auto"
+              className="w-[179px] self-stretch text-xs uppercase tracking-widest text-black/70 hover:text-black hover:bg-black/[0.035] transition-all duration-300 cursor-pointer text-center pointer-events-auto"
             >
               Reach Out
             </button>
