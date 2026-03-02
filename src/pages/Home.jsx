@@ -1526,7 +1526,7 @@ const Home = () => {
             </div>
           
             {/* Staggered Image Stack */}
-            <div className="hero-stack-col hero-intro-item w-full order-2 md:ml-auto md:mr-[-24px] md:w-[900px] flex items-center justify-end relative group md:py-16">
+            <div className="hero-stack-col hero-intro-item w-full order-2 mb-2 md:mb-0 md:ml-auto md:mr-[-24px] md:w-[900px] flex items-center justify-end relative group md:py-16">
               <div
                 className="hero-stack-wrapper relative w-full md:w-[900px]"
               ref={stackRef}
